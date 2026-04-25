@@ -36,7 +36,7 @@ export function registerOpenTool(pi: ExtensionAPI, options: OpenToolOptions): vo
 	const { extractContent: extract = extractContent, cache, cloneManager, tempTracker } = options;
 
 	pi.registerTool({
-		name: "open",
+		name: "open_url",
 		label: "Open Page",
 		description:
 			"Open a particular web page and extract its content as markdown (reader mode). " +
@@ -45,11 +45,12 @@ export function registerOpenTool(pi: ExtensionAPI, options: OpenToolOptions): vo
 			"Use this to read the full content of a URL you found via search or that the user provided.",
 		promptSnippet: "Open a web page and read its content",
 		promptGuidelines: [
-			"After searching, use open to read the most relevant results in full.",
+			"After searching, use open_url to read the most relevant results in full.",
 			"Open one page at a time to avoid overwhelming context.",
 			"PDFs are supported — paste a .pdf URL directly.",
 			"GitHub URLs are cloned locally — use the returned local path with read and bash to explore.",
 			"For large GitHub repos (>350MB), a lightweight API view is returned. Use forceClone:true to override.",
+			"Use open_url for web pages, not local files (use read for local files).",
 		],
 		parameters: Type.Object({
 			url: Type.String({
@@ -66,7 +67,7 @@ export function registerOpenTool(pi: ExtensionAPI, options: OpenToolOptions): vo
 		// Custom rendering to show the URL in the GUI
 		renderCall(args, theme, context) {
 			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
-			let content = theme.fg("toolTitle", theme.bold("open "));
+			let content = theme.fg("toolTitle", theme.bold("open_url "));
 			// Truncate long URLs for display
 			const displayUrl = args.url.length > 50 ? `...${args.url.slice(-47)}` : args.url;
 			content += theme.fg("muted", displayUrl);
@@ -115,7 +116,7 @@ export function registerOpenTool(pi: ExtensionAPI, options: OpenToolOptions): vo
 			let resultText = text;
 			if (truncated) {
 				// Save full content to temp file
-				const tempDir = await mkdtemp(join(tmpdir(), "pi-browser-"));
+				const tempDir = await mkdtemp(join(tmpdir(), "pi-duckfeed-"));
 				tempTracker?.add(tempDir);
 				const tempFile = join(tempDir, "page.md");
 				await writeFile(tempFile, content, "utf8");

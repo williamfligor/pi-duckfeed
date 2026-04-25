@@ -22,7 +22,7 @@ describe("registerOpenTool", () => {
 
 		expect(mockRegisterTool).toHaveBeenCalled();
 		const toolConfig = mockRegisterTool.mock.calls[0][0];
-		expect(toolConfig.name).toBe("open");
+		expect(toolConfig.name).toBe("open_url");
 		expect(toolConfig.label).toBe("Open Page");
 	});
 

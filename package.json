@@ -2,10 +2,13 @@
 	"name": "pi-duckfeed",
 	"private": true,
 	"version": "1.0.0",
+	"license": "MIT",
 	"type": "module",
 	"pi": {
 		"extensions": [
-			"./index.ts"
+			"./search-extension.ts",
+			"./open-extension.ts",
+			"./find-extension.ts"
 		]
 	},
 	"scripts": {

@@ -31,15 +31,16 @@ export function registerSearchTool(pi: ExtensionAPI, options: SearchToolOptions 
 	const { runDdgsSearch: search = runDdgsSearch } = options;
 
 	pi.registerTool({
-		name: "search",
-		label: "Search",
+		name: "web_search",
+		label: "Web Search",
 		description:
 			"Search the web for key phrases. Returns a list of search results with titles, URLs, and snippets. " +
 			"Use this to find information on the internet when you need to look something up.",
 		promptSnippet: "Search the web for information using key phrases",
 		promptGuidelines: [
-			"Use the search tool to find information on the web before answering questions about current events, facts, or topics you're unsure about.",
+			"Use web_search to find information on the web before answering questions about current events, facts, or topics you're unsure about.",
 			"Search queries should be concise key phrases, not full sentences.",
+			"Use web_search for web searches only, not for searching local files.",
 		],
 		parameters: Type.Object({
 			query: Type.String({
@@ -59,7 +60,7 @@ export function registerSearchTool(pi: ExtensionAPI, options: SearchToolOptions 
 		renderCall(args, theme, context) {
 			const text =
 				context.lastComponent instanceof Text ? context.lastComponent : new Text("", 0, 0);
-			let content = theme.fg("toolTitle", theme.bold("search "));
+			let content = theme.fg("toolTitle", theme.bold("web_search "));
 			content += theme.fg("muted", `"${args.query}"`);
 			if (args.max_results && args.max_results !== 10) {
 				content += theme.fg("dim", ` (${args.max_results} results)`);
