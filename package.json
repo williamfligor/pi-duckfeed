@@ -2,6 +2,7 @@
 	"name": "pi-duckfeed",
 	"private": true,
 	"version": "1.0.0",
+	"license": "MIT",
 	"type": "module",
 	"pi": {
 		"extensions": [
