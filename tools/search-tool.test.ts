@@ -15,8 +15,8 @@ describe("registerSearchTool", () => {
 
 		expect(mockRegisterTool).toHaveBeenCalled();
 		const toolConfig = mockRegisterTool.mock.calls[0][0];
-		expect(toolConfig.name).toBe("search");
-		expect(toolConfig.label).toBe("Search");
+		expect(toolConfig.name).toBe("web_search");
+		expect(toolConfig.label).toBe("Web Search");
 		expect(toolConfig.description).toContain("Search the web");
 	});
 
@@ -28,7 +28,7 @@ describe("registerSearchTool", () => {
 		registerSearchTool(mockPi, { runDdgsSearch: mockSearch });
 
 		const toolConfig = mockRegisterTool.mock.calls[0][0];
-		expect(toolConfig.name).toBe("search");
+		expect(toolConfig.name).toBe("web_search");
 	});
 
 	it("configures correct parameters", () => {

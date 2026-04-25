@@ -45,18 +45,19 @@ export function registerFindTool(pi: ExtensionAPI, options: FindToolOptions): vo
 	const { extractContent: extract = extractContent, cache, cloneManager } = options;
 
 	pi.registerTool({
-		name: "find",
+		name: "find_in_url",
 		label: "Find on Page",
 		description:
 			"Look for specific content on a web page. Searches for a key phrase within a page's content. " +
-			"If the page was previously opened with the 'open' tool, it searches the cached content. " +
+			"If the page was previously opened with the 'open_url' tool, it searches the cached content. " +
 			"For GitHub URLs with a local clone, searches across all files in the repo. " +
 			"Otherwise, it fetches the page first and then searches within it.",
 		promptSnippet: "Search for text within a web page",
 		promptGuidelines: [
-			"Use find to locate specific information within a long page without re-reading the entire content.",
-			"find is more efficient than re-opening a page when you just need to check for a specific term.",
-			"For GitHub URLs, find searches across all files in the cloned repo.",
+			"Use find_in_url to locate specific information within a long page without re-reading the entire content.",
+			"find_in_url is more efficient than re-opening a page when you just need to check for a specific term.",
+			"For GitHub URLs, find_in_url searches across all files in the cloned repo.",
+			"Use find_in_url for web pages, not local files (use grep for local files).",
 		],
 		parameters: Type.Object({
 			url: Type.String({

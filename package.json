@@ -5,7 +5,9 @@
 	"type": "module",
 	"pi": {
 		"extensions": [
-			"./index.ts"
+			"./search-extension.ts",
+			"./open-extension.ts",
+			"./find-extension.ts"
 		]
 	},
 	"scripts": {

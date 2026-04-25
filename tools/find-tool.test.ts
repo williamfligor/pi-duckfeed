@@ -24,7 +24,7 @@ describe("registerFindTool", () => {
 
 		expect(mockRegisterTool).toHaveBeenCalled();
 		const toolConfig = mockRegisterTool.mock.calls[0][0];
-		expect(toolConfig.name).toBe("find");
+		expect(toolConfig.name).toBe("find_in_url");
 		expect(toolConfig.label).toBe("Find on Page");
 	});
 
