@@ -16,7 +16,9 @@
 		"format": "npx @biomejs/biome format --write ."
 	},
 	"dependencies": {
+		"@mariozechner/pi-tui": "^0.70.2",
 		"@mozilla/readability": "^0.6.0",
+		"@sinclair/typebox": "^0.34.49",
 		"@types/turndown": "^5.0.6",
 		"dssrf": "^1.0.2",
 		"jsdom": "^29.0.2",
@@ -24,8 +26,6 @@
 		"turndown": "^7.2.4"
 	},
 	"devDependencies": {
-		"@mariozechner/pi-tui": "^0.66.1",
-		"@sinclair/typebox": "^0.34.49",
 		"@types/bun": "^1.1.14"
 	}
 }
