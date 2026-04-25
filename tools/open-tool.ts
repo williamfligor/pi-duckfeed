@@ -116,7 +116,7 @@ export function registerOpenTool(pi: ExtensionAPI, options: OpenToolOptions): vo
 			let resultText = text;
 			if (truncated) {
 				// Save full content to temp file
-				const tempDir = await mkdtemp(join(tmpdir(), "pi-browser-"));
+				const tempDir = await mkdtemp(join(tmpdir(), "pi-duckfeed-"));
 				tempTracker?.add(tempDir);
 				const tempFile = join(tempDir, "page.md");
 				await writeFile(tempFile, content, "utf8");

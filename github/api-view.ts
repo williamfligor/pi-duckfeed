@@ -80,7 +80,7 @@ async function ghApi(
 		const response = await fetch(url, {
 			signal: controller.signal,
 			headers: {
-				"User-Agent": "pi-browser-extension",
+				"User-Agent": "pi-duckfeed-extension",
 				Accept: "application/vnd.github.v3+json",
 				...headers,
 			},

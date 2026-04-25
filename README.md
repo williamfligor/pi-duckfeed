@@ -1,10 +1,10 @@
-# pi-browser
+# pi-duckfeed
 
 > A Pi extension that searches the web with DuckDuckGo and fetches pages, PDFs, and GitHub repos as markdown — your AI's complete slop delivery service.
 
 ## Overview
 
-`pi-browser` provides web browsing capabilities for the Pi coding agent, powered by DuckDuckGo. It handles two distinct but complementary tasks:
+`pi-duckfeed` provides web browsing capabilities for the Pi coding agent, powered by DuckDuckGo. It handles two distinct but complementary tasks:
 
 1. **Search the web** — Get search results via DuckDuckGo's API
 2. **Fetch content** — Extract markdown from HTML pages, PDFs, and GitHub repositories
@@ -198,7 +198,7 @@ The extension has special handling for GitHub URLs:
 ## Project Structure
 
 ```
-pi-browser/
+pi-duckfeed/
 ├── index.ts              # Main extension entry point
 ├── constants.ts          # Configuration constants
 ├── types.ts              # TypeScript type definitions
