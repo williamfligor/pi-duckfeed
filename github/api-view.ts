@@ -36,10 +36,30 @@ function validatePath(path: string): void {
 }
 
 /**
- * Get default branch name
+ * Get default branch name, resolving from the GitHub API when no ref is given.
+ * Falls back to "main" then "master" if the API call fails.
  */
-function getDefaultRef(ref?: string): string {
-	return ref || "main";
+async function getDefaultRef(
+	owner: string,
+	repo: string,
+	ref?: string,
+	options: ApiViewOptions = {},
+): Promise<string> {
+	if (ref) return ref;
+
+	// Try to get the actual default branch from the repo metadata
+	try {
+		const repoData = await ghApi(`repos/${owner}/${repo}`, options);
+		const defaultBranch = (repoData as Record<string, unknown>).default_branch as
+			| string
+			| undefined;
+		if (defaultBranch) return defaultBranch;
+	} catch {
+		// API call failed (rate limit, auth, etc.) — fall through to heuristic
+	}
+
+	// Heuristic fallback
+	return "main";
 }
 
 /**
@@ -131,7 +151,7 @@ export async function getRepoTreeView(
 	options: ApiViewOptions = {},
 ): Promise<string> {
 	validateOwnerRepo(owner, repo);
-	const refToUse = getDefaultRef(ref);
+	const refToUse = await getDefaultRef(owner, repo, ref, options);
 
 	// Get the tree
 	const treeData = await ghApi(
@@ -189,7 +209,7 @@ export async function getDirectoryListing(
 ): Promise<string> {
 	validateOwnerRepo(owner, repo);
 	validatePath(path);
-	const refToUse = getDefaultRef(ref);
+	const refToUse = await getDefaultRef(owner, repo, ref, options);
 
 	// Get the directory contents
 	const dirData = await ghApi(`repos/${owner}/${repo}/contents/${path}?ref=${refToUse}`, options);
@@ -226,7 +246,7 @@ export async function getFileContent(
 ): Promise<string> {
 	validateOwnerRepo(owner, repo);
 	validatePath(path);
-	const refToUse = getDefaultRef(ref);
+	const refToUse = await getDefaultRef(owner, repo, ref, options);
 
 	// Get file content
 	const fileData = await ghApi(
