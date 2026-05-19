@@ -8,8 +8,8 @@ import { htmlToMarkdown } from "./html-to-markdown";
 import { pdfBufferToMarkdown } from "./pdf";
 
 describe("html-to-markdown integration", () => {
-	it("handles a complete realistic HTML document", () => {
-		const html = `<!DOCTYPE html>
+    it("handles a complete realistic HTML document", () => {
+        const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -65,31 +65,31 @@ describe("integration", () => {
 </body>
 </html>`;
 
-		const markdown = htmlToMarkdown(html, "https://example.com/article");
+        const markdown = htmlToMarkdown(html, "https://example.com/article");
 
-		// Should contain article content
-		expect(markdown).toContain("Understanding Integration Testing");
-		expect(markdown).toContain("Integration testing is a crucial part");
-		expect(markdown).toContain("Unit tests verify individual components");
-		expect(markdown).toContain('describe("integration"');
+        // Should contain article content
+        expect(markdown).toContain("Understanding Integration Testing");
+        expect(markdown).toContain("Integration testing is a crucial part");
+        expect(markdown).toContain("Unit tests verify individual components");
+        expect(markdown).toContain('describe("integration"');
 
-		// Should have proper markdown structure
-		expect(markdown).toContain("# Understanding Integration Testing");
-		expect(markdown).toContain("## Introduction");
-		expect(markdown).toContain("## Key Concepts");
-		expect(markdown).toContain("### Example Code");
-		expect(markdown).toContain("## Conclusion");
+        // Should have proper markdown structure
+        expect(markdown).toContain("# Understanding Integration Testing");
+        expect(markdown).toContain("## Introduction");
+        expect(markdown).toContain("## Key Concepts");
+        expect(markdown).toContain("### Example Code");
+        expect(markdown).toContain("## Conclusion");
 
-		// Should remove navigation, footer, scripts
-		expect(markdown).not.toContain("<nav");
-		expect(markdown).not.toContain("<footer");
-		expect(markdown).not.toContain("Copyright 2024");
-		expect(markdown).not.toContain("tracking code");
-		expect(markdown).not.toContain("console.log");
-	});
+        // Should remove navigation, footer, scripts
+        expect(markdown).not.toContain("<nav");
+        expect(markdown).not.toContain("<footer");
+        expect(markdown).not.toContain("Copyright 2024");
+        expect(markdown).not.toContain("tracking code");
+        expect(markdown).not.toContain("console.log");
+    });
 
-	it("handles complex nested HTML structures", () => {
-		const html = `
+    it("handles complex nested HTML structures", () => {
+        const html = `
 <html>
 <body>
     <div class="content">
@@ -114,17 +114,17 @@ describe("integration", () => {
 </body>
 </html>`;
 
-		const markdown = htmlToMarkdown(html, "https://example.com/complex");
+        const markdown = htmlToMarkdown(html, "https://example.com/complex");
 
-		expect(markdown).toContain("Name");
-		expect(markdown).toContain("Value");
-		expect(markdown).toContain("Key1");
-		expect(markdown).toContain("This is a quoted paragraph");
-		expect(markdown).toContain("Deeply nested content");
-	});
+        expect(markdown).toContain("Name");
+        expect(markdown).toContain("Value");
+        expect(markdown).toContain("Key1");
+        expect(markdown).toContain("This is a quoted paragraph");
+        expect(markdown).toContain("Deeply nested content");
+    });
 
-	it("handles HTML with mixed content types", () => {
-		const html = `
+    it("handles HTML with mixed content types", () => {
+        const html = `
 <html>
 <body>
     <h1>Mixed Content Page</h1>
@@ -143,16 +143,16 @@ describe("integration", () => {
 </body>
 </html>`;
 
-		const markdown = htmlToMarkdown(html, "https://example.com/mixed");
+        const markdown = htmlToMarkdown(html, "https://example.com/mixed");
 
-		expect(markdown).toContain("# Mixed Content Page");
-		expect(markdown).toContain("[inline link](https://example.com)");
-		expect(markdown).toContain("First item");
-		expect(markdown).toContain("After horizontal rule");
-	});
+        expect(markdown).toContain("# Mixed Content Page");
+        expect(markdown).toContain("[inline link](https://example.com)");
+        expect(markdown).toContain("First item");
+        expect(markdown).toContain("After horizontal rule");
+    });
 
-	it("handles malformed HTML gracefully", () => {
-		const html = `
+    it("handles malformed HTML gracefully", () => {
+        const html = `
 <html>
 <body>
     <h1>Unclosed Heading
@@ -161,34 +161,34 @@ describe("integration", () => {
     </p>
 </body>`;
 
-		// Should not throw
-		const markdown = htmlToMarkdown(html, "https://example.com/malformed");
-		expect(markdown).toBeDefined();
-		expect(markdown).toContain("Unclosed Heading");
-		expect(markdown).toContain("Paragraph without closing tag");
-	});
+        // Should not throw
+        const markdown = htmlToMarkdown(html, "https://example.com/malformed");
+        expect(markdown).toBeDefined();
+        expect(markdown).toContain("Unclosed Heading");
+        expect(markdown).toContain("Paragraph without closing tag");
+    });
 
-	it("handles very long content", () => {
-		const paragraphs = Array(100)
-			.fill(0)
-			.map((_, i) => `<p>Paragraph ${i + 1} with some content to make it realistic.</p>`)
-			.join("\n");
+    it("handles very long content", () => {
+        const paragraphs = Array(100)
+            .fill(0)
+            .map((_, i) => `<p>Paragraph ${i + 1} with some content to make it realistic.</p>`)
+            .join("\n");
 
-		const html = `<html><body><h1>Long Document</h1>${paragraphs}</body></html>`;
-		const markdown = htmlToMarkdown(html, "https://example.com/long");
+        const html = `<html><body><h1>Long Document</h1>${paragraphs}</body></html>`;
+        const markdown = htmlToMarkdown(html, "https://example.com/long");
 
-		expect(markdown).toContain("# Long Document");
-		expect(markdown).toContain("Paragraph 1");
-		expect(markdown).toContain("Paragraph 100");
-		expect(markdown.length).toBeGreaterThan(2000);
-	});
+        expect(markdown).toContain("# Long Document");
+        expect(markdown).toContain("Paragraph 1");
+        expect(markdown).toContain("Paragraph 100");
+        expect(markdown.length).toBeGreaterThan(2000);
+    });
 });
 
 describe("pdf integration", () => {
-	it("handles realistic PDF metadata and content", async () => {
-		// Simulate a realistic PDF parser response
-		const mockParser = async () => ({
-			text: `Introduction to Machine Learning
+    it("handles realistic PDF metadata and content", async () => {
+        // Simulate a realistic PDF parser response
+        const mockParser = async () => ({
+            text: `Introduction to Machine Learning
 
 Machine learning is a subset of artificial intelligence that enables systems to learn from data.
 
@@ -208,33 +208,33 @@ Popular Algorithms
 Conclusion
 
 Machine learning continues to evolve and transform industries.`,
-			info: {
-				info: {
-					Title: "Introduction to Machine Learning",
-					Author: "Dr. John Smith",
-					Subject: "Artificial Intelligence",
-					Producer: "PDF Generator v2.0",
-				},
-				total: 15,
-			},
-		});
+            info: {
+                info: {
+                    Title: "Introduction to Machine Learning",
+                    Author: "Dr. John Smith",
+                    Subject: "Artificial Intelligence",
+                    Producer: "PDF Generator v2.0",
+                },
+                total: 15,
+            },
+        });
 
-		const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake pdf"), {
-			createParser: () => mockParser(),
-		});
+        const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake pdf"), {
+            createParser: () => mockParser(),
+        });
 
-		expect(markdown).toContain("# Introduction to Machine Learning");
-		expect(markdown).toContain("*Dr. John Smith*");
-		expect(markdown).toContain("*15 pages*");
-		expect(markdown).toContain("Machine learning is a subset");
-		expect(markdown).toContain("## Key Concepts");
-		expect(markdown).toContain("Supervised Learning");
-		expect(markdown).toContain("Neural Networks");
-	});
+        expect(markdown).toContain("# Introduction to Machine Learning");
+        expect(markdown).toContain("*Dr. John Smith*");
+        expect(markdown).toContain("*15 pages*");
+        expect(markdown).toContain("Machine learning is a subset");
+        expect(markdown).toContain("## Key Concepts");
+        expect(markdown).toContain("Supervised Learning");
+        expect(markdown).toContain("Neural Networks");
+    });
 
-	it("handles PDF with complex formatting patterns", async () => {
-		const mockParser = async () => ({
-			text: `TECHNICAL SPECIFICATION
+    it("handles PDF with complex formatting patterns", async () => {
+        const mockParser = async () => ({
+            text: `TECHNICAL SPECIFICATION
 
 Document Version: 2.1
 Date: January 2024
@@ -274,31 +274,31 @@ Solution: Check system requirements
 
 Issue 2: Software won't start
 Solution: Verify installation completed`,
-			info: {
-				info: {
-					Title: "Technical Specification Document",
-					Author: "Engineering Team",
-				},
-				total: 8,
-			},
-		});
+            info: {
+                info: {
+                    Title: "Technical Specification Document",
+                    Author: "Engineering Team",
+                },
+                total: 8,
+            },
+        });
 
-		const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
-			createParser: () => mockParser(),
-		});
+        const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
+            createParser: () => mockParser(),
+        });
 
-		expect(markdown).toContain("# Technical Specification Document");
-		expect(markdown).toContain("## 1. OVERVIEW");
-		expect(markdown).toContain("## 2. REQUIREMENTS");
-		expect(markdown).toContain("CPU: 2.0 GHz");
-		expect(markdown).toContain("RAM: 8GB minimum");
-		expect(markdown).toContain("Step 1: Download the installer");
-		expect(markdown).toContain("APPENDIX A: COMMON ISSUES");
-	});
+        expect(markdown).toContain("# Technical Specification Document");
+        expect(markdown).toContain("## 1. OVERVIEW");
+        expect(markdown).toContain("## 2. REQUIREMENTS");
+        expect(markdown).toContain("CPU: 2.0 GHz");
+        expect(markdown).toContain("RAM: 8GB minimum");
+        expect(markdown).toContain("Step 1: Download the installer");
+        expect(markdown).toContain("APPENDIX A: COMMON ISSUES");
+    });
 
-	it("handles PDF with code snippets", async () => {
-		const mockParser = async () => ({
-			text: `Python Tutorial
+    it("handles PDF with code snippets", async () => {
+        const mockParser = async () => ({
+            text: `Python Tutorial
 
 Basic Syntax
 
@@ -325,26 +325,26 @@ class Dog:
 
 my_dog = Dog("Buddy")
 print(my_dog.bark())`,
-			info: {
-				info: { Title: "Python Tutorial" },
-				total: 3,
-			},
-		});
+            info: {
+                info: { Title: "Python Tutorial" },
+                total: 3,
+            },
+        });
 
-		const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
-			createParser: () => mockParser(),
-		});
+        const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
+            createParser: () => mockParser(),
+        });
 
-		expect(markdown).toContain("# Python Tutorial");
-		expect(markdown).toContain('print("Hello, World!")');
-		expect(markdown).toContain("def greet(name):");
-		expect(markdown).toContain("class Dog:");
-		expect(markdown).toContain('return "Woof!"');
-	});
+        expect(markdown).toContain("# Python Tutorial");
+        expect(markdown).toContain('print("Hello, World!")');
+        expect(markdown).toContain("def greet(name):");
+        expect(markdown).toContain("class Dog:");
+        expect(markdown).toContain('return "Woof!"');
+    });
 
-	it("handles PDF with tables-like content", async () => {
-		const mockParser = async () => ({
-			text: `Product Comparison
+    it("handles PDF with tables-like content", async () => {
+        const mockParser = async () => ({
+            text: `Product Comparison
 
 Product A         Product B         Product C
 Price: $100       Price: $150       Price: $200
@@ -357,26 +357,26 @@ Features:
 - Feature 3       - Feature 3       - Feature 3
 
 Recommendation: Product B offers the best value.`,
-			info: {
-				info: { Title: "Product Comparison" },
-				total: 2,
-			},
-		});
+            info: {
+                info: { Title: "Product Comparison" },
+                total: 2,
+            },
+        });
 
-		const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
-			createParser: () => mockParser(),
-		});
+        const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
+            createParser: () => mockParser(),
+        });
 
-		expect(markdown).toContain("# Product Comparison");
-		expect(markdown).toContain("Product A");
-		expect(markdown).toContain("Price: $150");
-		expect(markdown).toContain("Rating: 4.8");
-		expect(markdown).toContain("Product B offers the best value");
-	});
+        expect(markdown).toContain("# Product Comparison");
+        expect(markdown).toContain("Product A");
+        expect(markdown).toContain("Price: $150");
+        expect(markdown).toContain("Rating: 4.8");
+        expect(markdown).toContain("Product B offers the best value");
+    });
 
-	it("handles PDF with lists and bullet points", async () => {
-		const mockParser = async () => ({
-			text: `Shopping List
+    it("handles PDF with lists and bullet points", async () => {
+        const mockParser = async () => ({
+            text: `Shopping List
 
 Groceries:
 • Milk
@@ -395,23 +395,23 @@ Electronics:
 • Phone charger
 • USB cable
 • Headphones`,
-			info: { total: 1 },
-		});
+            info: { total: 1 },
+        });
 
-		const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
-			createParser: () => mockParser(),
-		});
+        const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
+            createParser: () => mockParser(),
+        });
 
-		expect(markdown).toContain("Milk");
-		expect(markdown).toContain("Eggs");
-		expect(markdown).toContain("Toilet paper");
-		expect(markdown).toContain("Headphones");
-	});
+        expect(markdown).toContain("Milk");
+        expect(markdown).toContain("Eggs");
+        expect(markdown).toContain("Toilet paper");
+        expect(markdown).toContain("Headphones");
+    });
 });
 
 describe("html-to-markdown edge cases", () => {
-	it("handles HTML entities correctly", () => {
-		const html = `
+    it("handles HTML entities correctly", () => {
+        const html = `
 <html>
 <body>
     <p>Special characters: &lt; &gt; &amp; &quot; &apos; &copy; &reg; &trade;</p>
@@ -420,16 +420,16 @@ describe("html-to-markdown edge cases", () => {
 </body>
 </html>`;
 
-		const markdown = htmlToMarkdown(html, "https://example.com/entities");
+        const markdown = htmlToMarkdown(html, "https://example.com/entities");
 
-		expect(markdown).toContain("<");
-		expect(markdown).toContain(">");
-		expect(markdown).toContain("&");
-		expect(markdown).toContain('"');
-	});
+        expect(markdown).toContain("<");
+        expect(markdown).toContain(">");
+        expect(markdown).toContain("&");
+        expect(markdown).toContain('"');
+    });
 
-	it("handles HTML with data attributes and custom elements", () => {
-		const html = `
+    it("handles HTML with data attributes and custom elements", () => {
+        const html = `
 <html>
 <body>
     <div data-id="123" data-value="test">Content with data attributes</div>
@@ -438,14 +438,14 @@ describe("html-to-markdown edge cases", () => {
 </body>
 </html>`;
 
-		const markdown = htmlToMarkdown(html, "https://example.com/custom");
+        const markdown = htmlToMarkdown(html, "https://example.com/custom");
 
-		expect(markdown).toContain("Content with data attributes");
-		expect(markdown).toContain("Regular paragraph");
-	});
+        expect(markdown).toContain("Content with data attributes");
+        expect(markdown).toContain("Regular paragraph");
+    });
 
-	it("handles HTML with embedded SVG", () => {
-		const html = `
+    it("handles HTML with embedded SVG", () => {
+        const html = `
 <html>
 <body>
     <h1>Page with SVG</h1>
@@ -456,14 +456,14 @@ describe("html-to-markdown edge cases", () => {
 </body>
 </html>`;
 
-		const markdown = htmlToMarkdown(html, "https://example.com/svg");
+        const markdown = htmlToMarkdown(html, "https://example.com/svg");
 
-		expect(markdown).toContain("Page with SVG");
-		expect(markdown).toContain("Text after SVG");
-	});
+        expect(markdown).toContain("Page with SVG");
+        expect(markdown).toContain("Text after SVG");
+    });
 
-	it("handles HTML with iframes and objects (should be removed)", () => {
-		const html = `
+    it("handles HTML with iframes and objects (should be removed)", () => {
+        const html = `
 <html>
 <body>
     <h1>Page with Embeds</h1>
@@ -473,52 +473,52 @@ describe("html-to-markdown edge cases", () => {
 </body>
 </html>`;
 
-		const markdown = htmlToMarkdown(html, "https://example.com/embeds");
+        const markdown = htmlToMarkdown(html, "https://example.com/embeds");
 
-		expect(markdown).toContain("Page with Embeds");
-		expect(markdown).toContain("Content after embeds");
-		expect(markdown).not.toContain("<iframe");
-		expect(markdown).not.toContain("<object");
-	});
+        expect(markdown).toContain("Page with Embeds");
+        expect(markdown).toContain("Content after embeds");
+        expect(markdown).not.toContain("<iframe");
+        expect(markdown).not.toContain("<object");
+    });
 });
 
 describe("pdf edge cases", () => {
-	it("handles PDF with only whitespace and newlines", async () => {
-		const mockParser = async () => ({
-			text: "   \n\n   \n   \n   ",
-			info: {},
-		});
+    it("handles PDF with only whitespace and newlines", async () => {
+        const mockParser = async () => ({
+            text: "   \n\n   \n   \n   ",
+            info: {},
+        });
 
-		const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
-			createParser: () => mockParser(),
-		});
+        const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
+            createParser: () => mockParser(),
+        });
 
-		expect(markdown).toBe("");
-	});
+        expect(markdown).toBe("");
+    });
 
-	it("handles PDF with very long lines", async () => {
-		const longLine = "A".repeat(1000);
-		const mockParser = async () => ({
-			text: `Title
+    it("handles PDF with very long lines", async () => {
+        const longLine = "A".repeat(1000);
+        const mockParser = async () => ({
+            text: `Title
 
 ${longLine}
 
 Content after long line`,
-			info: { info: { Title: "Long Lines Test" } },
-		});
+            info: { info: { Title: "Long Lines Test" } },
+        });
 
-		const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
-			createParser: () => mockParser(),
-		});
+        const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
+            createParser: () => mockParser(),
+        });
 
-		expect(markdown).toContain("# Long Lines Test");
-		expect(markdown).toContain("Content after long line");
-		expect(markdown.length).toBeGreaterThan(1000);
-	});
+        expect(markdown).toContain("# Long Lines Test");
+        expect(markdown).toContain("Content after long line");
+        expect(markdown.length).toBeGreaterThan(1000);
+    });
 
-	it("handles PDF with repeated short lines (potential headings)", async () => {
-		const mockParser = async () => ({
-			text: `Chapter 1
+    it("handles PDF with repeated short lines (potential headings)", async () => {
+        const mockParser = async () => ({
+            text: `Chapter 1
 
 This is the content of chapter 1.
 
@@ -533,17 +533,17 @@ This is the content of chapter 3.
 Appendix
 
 Additional information.`,
-			info: {},
-		});
+            info: {},
+        });
 
-		const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
-			createParser: () => mockParser(),
-		});
+        const markdown = await pdfBufferToMarkdown(Buffer.from("%PDF-1.4 fake"), {
+            createParser: () => mockParser(),
+        });
 
-		// Short lines should be detected as headings
-		expect(markdown).toContain("## Chapter 1");
-		expect(markdown).toContain("## Chapter 2");
-		expect(markdown).toContain("## Chapter 3");
-		expect(markdown).toContain("## Appendix");
-	});
+        // Short lines should be detected as headings
+        expect(markdown).toContain("## Chapter 1");
+        expect(markdown).toContain("## Chapter 2");
+        expect(markdown).toContain("## Chapter 3");
+        expect(markdown).toContain("## Appendix");
+    });
 });

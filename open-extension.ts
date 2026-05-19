@@ -8,6 +8,6 @@ import { getSharedState } from "./shared";
 import { registerOpenTool } from "./tools";
 
 export default function openExtension(pi: ExtensionAPI) {
-	const { cache, cloneManager, tempTracker } = getSharedState(pi);
-	registerOpenTool(pi, { cache, cloneManager, tempTracker });
+    const { cache, cloneManager, tempTracker } = getSharedState(pi);
+    registerOpenTool(pi, { cache, cloneManager, tempTracker });
 }

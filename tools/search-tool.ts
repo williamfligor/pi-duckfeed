@@ -14,11 +14,11 @@ import { formatSearchResults } from "../utils";
  * Options for the search tool
  */
 export interface SearchToolOptions {
-	runDdgsSearch?: (
-		query: string,
-		maxResults?: number,
-		options?: RunDdgsSearchOptions,
-	) => ReturnType<typeof runDdgsSearch>;
+    runDdgsSearch?: (
+        query: string,
+        maxResults?: number,
+        options?: RunDdgsSearchOptions,
+    ) => ReturnType<typeof runDdgsSearch>;
 }
 
 /**
@@ -28,115 +28,115 @@ export interface SearchToolOptions {
  * @param options - Optional configuration including mock search function for testing
  */
 export function registerSearchTool(pi: ExtensionAPI, options: SearchToolOptions = {}): void {
-	const { runDdgsSearch: search = runDdgsSearch } = options;
+    const { runDdgsSearch: search = runDdgsSearch } = options;
 
-	pi.registerTool({
-		name: "web_search",
-		label: "Web Search",
-		description:
-			"Search the web for key phrases. Returns a list of search results with titles, URLs, and snippets. " +
-			"Use this to find information on the internet when you need to look something up.",
-		promptSnippet: "Search the web for information using key phrases",
-		promptGuidelines: [
-			"Use web_search to find information on the web before answering questions about current events, facts, or topics you're unsure about.",
-			"Search queries should be concise key phrases, not full sentences.",
-			"Use web_search for web searches only, not for searching local files.",
-		],
-		parameters: Type.Object({
-			query: Type.String({
-				description: "Search query - use concise key phrases for best results",
-			}),
-			max_results: Type.Optional(
-				Type.Number({
-					description: "Maximum number of results to return (default: 10, max: 20)",
-					default: 10,
-					minimum: 1,
-					maximum: 20,
-				}),
-			),
-		}),
+    pi.registerTool({
+        name: "web_search",
+        label: "Web Search",
+        description:
+            "Search the web for key phrases. Returns a list of search results with titles, URLs, and snippets. " +
+            "Use this to find information on the internet when you need to look something up.",
+        promptSnippet: "Search the web for information using key phrases",
+        promptGuidelines: [
+            "Use web_search to find information on the web before answering questions about current events, facts, or topics you're unsure about.",
+            "Search queries should be concise key phrases, not full sentences.",
+            "Use web_search for web searches only, not for searching local files.",
+        ],
+        parameters: Type.Object({
+            query: Type.String({
+                description: "Search query - use concise key phrases for best results",
+            }),
+            max_results: Type.Optional(
+                Type.Number({
+                    description: "Maximum number of results to return (default: 10, max: 20)",
+                    default: 10,
+                    minimum: 1,
+                    maximum: 20,
+                }),
+            ),
+        }),
 
-		// Custom rendering to show the search query in the GUI
-		renderCall(args, theme, context) {
-			const text =
-				context.lastComponent instanceof Text ? context.lastComponent : new Text("", 0, 0);
-			let content = theme.fg("toolTitle", theme.bold("web_search "));
-			content += theme.fg("muted", `"${args.query}"`);
-			if (args.max_results && args.max_results !== 10) {
-				content += theme.fg("dim", ` (${args.max_results} results)`);
-			}
-			text.setText(content);
-			return text;
-		},
+        // Custom rendering to show the search query in the GUI
+        renderCall(args, theme, context) {
+            const text =
+                context.lastComponent instanceof Text ? context.lastComponent : new Text("", 0, 0);
+            let content = theme.fg("toolTitle", theme.bold("web_search "));
+            content += theme.fg("muted", `"${args.query}"`);
+            if (args.max_results && args.max_results !== 10) {
+                content += theme.fg("dim", ` (${args.max_results} results)`);
+            }
+            text.setText(content);
+            return text;
+        },
 
-		renderResult(result, { expanded, isPartial }, theme, context) {
-			const text =
-				context.lastComponent instanceof Text ? context.lastComponent : new Text("", 0, 0);
+        renderResult(result, { expanded, isPartial }, theme, context) {
+            const text =
+                context.lastComponent instanceof Text ? context.lastComponent : new Text("", 0, 0);
 
-			if (isPartial) {
-				text.setText(theme.fg("warning", "Searching the web..."));
-				return text;
-			}
+            if (isPartial) {
+                text.setText(theme.fg("warning", "Searching the web..."));
+                return text;
+            }
 
-			const details = (result.details ?? {}) as {
-				query?: string;
-				resultCount?: number;
-			};
+            const details = (result.details ?? {}) as {
+                query?: string;
+                resultCount?: number;
+            };
 
-			if (!expanded) {
-				const query = details.query ?? "";
-				const displayQuery = query.length > 60 ? `${query.slice(0, 57)}...` : query;
-				const resultCount = details.resultCount ?? 0;
-				let summary = theme.fg("success", "✓ ");
-				summary += theme.fg("muted", `${resultCount} result(s)`);
-				if (displayQuery) {
-					summary += theme.fg("dim", ` for "${displayQuery}"`);
-				}
-				summary += theme.fg("dim", " — Ctrl-o for full output");
-				text.setText(summary);
-				return text;
-			}
+            if (!expanded) {
+                const query = details.query ?? "";
+                const displayQuery = query.length > 60 ? `${query.slice(0, 57)}...` : query;
+                const resultCount = details.resultCount ?? 0;
+                let summary = theme.fg("success", "✓ ");
+                summary += theme.fg("muted", `${resultCount} result(s)`);
+                if (displayQuery) {
+                    summary += theme.fg("dim", ` for "${displayQuery}"`);
+                }
+                summary += theme.fg("dim", " — Ctrl-o for full output");
+                text.setText(summary);
+                return text;
+            }
 
-			let fullText = "";
-			for (const item of result.content ?? []) {
-				if (item.type === "text" && typeof item.text === "string") {
-					fullText = item.text;
-					break;
-				}
-			}
-			text.setText(fullText || theme.fg("dim", "(no output)"));
-			return text;
-		},
+            let fullText = "";
+            for (const item of result.content ?? []) {
+                if (item.type === "text" && typeof item.text === "string") {
+                    fullText = item.text;
+                    break;
+                }
+            }
+            text.setText(fullText || theme.fg("dim", "(no output)"));
+            return text;
+        },
 
-		async execute(_toolCallId, params, signal, _onUpdate, _ctx) {
-			// Check if operation was cancelled
-			if (signal?.aborted) {
-				throw new Error("Operation cancelled");
-			}
-			// Validate query is not empty
-			if (!params.query?.trim()) {
-				throw new Error("Search query cannot be empty");
-			}
+        async execute(_toolCallId, params, signal, _onUpdate, _ctx) {
+            // Check if operation was cancelled
+            if (signal?.aborted) {
+                throw new Error("Operation cancelled");
+            }
+            // Validate query is not empty
+            if (!params.query?.trim()) {
+                throw new Error("Search query cannot be empty");
+            }
 
-			const maxResults = Math.min(params.max_results ?? 10, 20);
+            const maxResults = Math.min(params.max_results ?? 10, 20);
 
-			try {
-				// Note: search() is synchronous and blocks until completion.
-				// Cancellation is checked before starting, but cannot interrupt the search itself.
-				const results = search(params.query, maxResults);
-				const formatted = formatSearchResults(results);
-				return {
-					content: [{ type: "text", text: formatted }],
-					details: {
-						query: params.query,
-						resultCount: results.length,
-						results: results.map((r) => ({ title: r.title, href: r.href })),
-					},
-				};
-			} catch (err) {
-				const message = err instanceof Error ? err.message : String(err);
-				throw new Error(`Search failed: ${message}`, { cause: err });
-			}
-		},
-	});
+            try {
+                // Note: search() is synchronous and blocks until completion.
+                // Cancellation is checked before starting, but cannot interrupt the search itself.
+                const results = search(params.query, maxResults);
+                const formatted = formatSearchResults(results);
+                return {
+                    content: [{ type: "text", text: formatted }],
+                    details: {
+                        query: params.query,
+                        resultCount: results.length,
+                        results: results.map((r) => ({ title: r.title, href: r.href })),
+                    },
+                };
+            } catch (err) {
+                const message = err instanceof Error ? err.message : String(err);
+                throw new Error(`Search failed: ${message}`, { cause: err });
+            }
+        },
+    });
 }

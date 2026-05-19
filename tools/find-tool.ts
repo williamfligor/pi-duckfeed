@@ -8,10 +8,10 @@ import { Text } from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
 
 import {
-	GREP_TIMEOUT_MS,
-	MAX_FIND_MATCHES,
-	MAX_SEARCH_PHRASE_LENGTH,
-	URL_DISPLAY_LENGTH,
+    GREP_TIMEOUT_MS,
+    MAX_FIND_MATCHES,
+    MAX_SEARCH_PHRASE_LENGTH,
+    URL_DISPLAY_LENGTH,
 } from "../constants";
 import type { ExtractContentOptions } from "../content";
 import { extractContent } from "../content";
@@ -22,12 +22,12 @@ import type { FindMatch, PageCache } from "../types";
  * Options for the find tool
  */
 export interface FindToolOptions {
-	extractContent?: (
-		url: string,
-		options?: ExtractContentOptions,
-	) => Promise<ReturnType<typeof extractContent>>;
-	cache: PageCache;
-	cloneManager?: CloneManager;
+    extractContent?: (
+        url: string,
+        options?: ExtractContentOptions,
+    ) => Promise<ReturnType<typeof extractContent>>;
+    cache: PageCache;
+    cloneManager?: CloneManager;
 }
 
 /**
@@ -42,225 +42,225 @@ export interface FindToolOptions {
  * ```
  */
 export function registerFindTool(pi: ExtensionAPI, options: FindToolOptions): void {
-	const { extractContent: extract = extractContent, cache, cloneManager } = options;
+    const { extractContent: extract = extractContent, cache, cloneManager } = options;
 
-	pi.registerTool({
-		name: "find_in_url",
-		label: "Find on Page",
-		description:
-			"Look for specific content on a web page. Searches for a key phrase within a page's content. " +
-			"If the page was previously opened with the 'open_url' tool, it searches the cached content. " +
-			"For GitHub URLs with a local clone, searches across all files in the repo. " +
-			"Otherwise, it fetches the page first and then searches within it.",
-		promptSnippet: "Search for text within a web page",
-		promptGuidelines: [
-			"Use find_in_url to locate specific information within a long page without re-reading the entire content.",
-			"find_in_url is more efficient than re-opening a page when you just need to check for a specific term.",
-			"For GitHub URLs, find_in_url searches across all files in the cloned repo.",
-			"Use find_in_url for web pages, not local files (use grep for local files).",
-		],
-		parameters: Type.Object({
-			url: Type.String({
-				description: "The URL of the page to search within",
-			}),
-			phrase: Type.String({
-				description: "The key phrase to search for within the page content",
-			}),
-			forceClone: Type.Optional(
-				Type.Boolean({
-					description:
-						"Forces a full git clone for GitHub URLs even if the repo exceeds the 350MB size threshold. Default: false.",
-				}),
-			),
-		}),
+    pi.registerTool({
+        name: "find_in_url",
+        label: "Find on Page",
+        description:
+            "Look for specific content on a web page. Searches for a key phrase within a page's content. " +
+            "If the page was previously opened with the 'open_url' tool, it searches the cached content. " +
+            "For GitHub URLs with a local clone, searches across all files in the repo. " +
+            "Otherwise, it fetches the page first and then searches within it.",
+        promptSnippet: "Search for text within a web page",
+        promptGuidelines: [
+            "Use find_in_url to locate specific information within a long page without re-reading the entire content.",
+            "find_in_url is more efficient than re-opening a page when you just need to check for a specific term.",
+            "For GitHub URLs, find_in_url searches across all files in the cloned repo.",
+            "Use find_in_url for web pages, not local files (use grep for local files).",
+        ],
+        parameters: Type.Object({
+            url: Type.String({
+                description: "The URL of the page to search within",
+            }),
+            phrase: Type.String({
+                description: "The key phrase to search for within the page content",
+            }),
+            forceClone: Type.Optional(
+                Type.Boolean({
+                    description:
+                        "Forces a full git clone for GitHub URLs even if the repo exceeds the 350MB size threshold. Default: false.",
+                }),
+            ),
+        }),
 
-		// Custom rendering to show the URL and search phrase in the GUI
-		renderCall(args, theme, context) {
-			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
-			let content = theme.fg("toolTitle", theme.bold("find "));
-			content += theme.fg("muted", `"${args.phrase}"`);
-			content += theme.fg("toolTitle", " in ");
-			// Truncate long URLs for display
-			const displayUrl =
-				args.url.length > URL_DISPLAY_LENGTH
-					? `...${args.url.slice(-(URL_DISPLAY_LENGTH - 3))}`
-					: args.url;
-			content += theme.fg("dim", displayUrl);
-			text.setText(content);
-			return text;
-		},
+        // Custom rendering to show the URL and search phrase in the GUI
+        renderCall(args, theme, context) {
+            const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
+            let content = theme.fg("toolTitle", theme.bold("find "));
+            content += theme.fg("muted", `"${args.phrase}"`);
+            content += theme.fg("toolTitle", " in ");
+            // Truncate long URLs for display
+            const displayUrl =
+                args.url.length > URL_DISPLAY_LENGTH
+                    ? `...${args.url.slice(-(URL_DISPLAY_LENGTH - 3))}`
+                    : args.url;
+            content += theme.fg("dim", displayUrl);
+            text.setText(content);
+            return text;
+        },
 
-		renderResult(result, { expanded, isPartial }, theme, context) {
-			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
+        renderResult(result, { expanded, isPartial }, theme, context) {
+            const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
 
-			if (isPartial) {
-				text.setText(theme.fg("warning", "Searching page..."));
-				return text;
-			}
+            if (isPartial) {
+                text.setText(theme.fg("warning", "Searching page..."));
+                return text;
+            }
 
-			const details = (result.details ?? {}) as {
-				url?: string;
-				phrase?: string;
-				matchCount?: number;
-				localPath?: string;
-			};
+            const details = (result.details ?? {}) as {
+                url?: string;
+                phrase?: string;
+                matchCount?: number;
+                localPath?: string;
+            };
 
-			if (!expanded) {
-				const matchCount = details.matchCount ?? 0;
-				let summary =
-					matchCount === 0 ? theme.fg("muted", "No matches") : theme.fg("success", "✓ ");
+            if (!expanded) {
+                const matchCount = details.matchCount ?? 0;
+                let summary =
+                    matchCount === 0 ? theme.fg("muted", "No matches") : theme.fg("success", "✓ ");
 
-				if (matchCount > 0) {
-					summary += theme.fg("muted", `${matchCount} match(es)`);
-				} else {
-					summary += theme.fg("dim", " found");
-				}
+                if (matchCount > 0) {
+                    summary += theme.fg("muted", `${matchCount} match(es)`);
+                } else {
+                    summary += theme.fg("dim", " found");
+                }
 
-				if (details.phrase) {
-					const displayPhrase =
-						details.phrase.length > 60
-							? `${details.phrase.slice(0, 57)}...`
-							: details.phrase;
-					summary += theme.fg("dim", ` for "${displayPhrase}"`);
-				}
+                if (details.phrase) {
+                    const displayPhrase =
+                        details.phrase.length > 60
+                            ? `${details.phrase.slice(0, 57)}...`
+                            : details.phrase;
+                    summary += theme.fg("dim", ` for "${displayPhrase}"`);
+                }
 
-				if (details.localPath) {
-					summary += theme.fg("dim", " in local clone");
-				}
+                if (details.localPath) {
+                    summary += theme.fg("dim", " in local clone");
+                }
 
-				summary += theme.fg("dim", " — Ctrl-o for full output");
-				text.setText(summary);
-				return text;
-			}
+                summary += theme.fg("dim", " — Ctrl-o for full output");
+                text.setText(summary);
+                return text;
+            }
 
-			let fullText = "";
-			for (const item of result.content ?? []) {
-				if (item.type === "text" && typeof item.text === "string") {
-					fullText = item.text;
-					break;
-				}
-			}
-			text.setText(fullText || theme.fg("dim", "(no output)"));
-			return text;
-		},
+            let fullText = "";
+            for (const item of result.content ?? []) {
+                if (item.type === "text" && typeof item.text === "string") {
+                    fullText = item.text;
+                    break;
+                }
+            }
+            text.setText(fullText || theme.fg("dim", "(no output)"));
+            return text;
+        },
 
-		async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
-			// Input validation
-			if (!params.phrase || params.phrase.trim() === "") {
-				throw new Error("Search phrase cannot be empty");
-			}
-			if (params.phrase.length > MAX_SEARCH_PHRASE_LENGTH) {
-				throw new Error(
-					`Search phrase exceeds maximum length of ${MAX_SEARCH_PHRASE_LENGTH} characters`,
-				);
-			}
+        async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
+            // Input validation
+            if (!params.phrase || params.phrase.trim() === "") {
+                throw new Error("Search phrase cannot be empty");
+            }
+            if (params.phrase.length > MAX_SEARCH_PHRASE_LENGTH) {
+                throw new Error(
+                    `Search phrase exceeds maximum length of ${MAX_SEARCH_PHRASE_LENGTH} characters`,
+                );
+            }
 
-			const gitHubInfo = parseGitHubUrl(params.url);
+            const gitHubInfo = parseGitHubUrl(params.url);
 
-			// GitHub URL with local clone: search across all files
-			if (gitHubInfo && cloneManager?.has(gitHubInfo.owner, gitHubInfo.repo)) {
-				const clone = cloneManager.get(gitHubInfo.owner, gitHubInfo.repo);
-				if (clone) {
-					const searchResults = await searchInClone(clone.localPath, params.phrase);
-					return formatSearchResults(
-						searchResults,
-						params.url,
-						clone.localPath,
-						params.phrase,
-					);
-				}
-			}
+            // GitHub URL with local clone: search across all files
+            if (gitHubInfo && cloneManager?.has(gitHubInfo.owner, gitHubInfo.repo)) {
+                const clone = cloneManager.get(gitHubInfo.owner, gitHubInfo.repo);
+                if (clone) {
+                    const searchResults = await searchInClone(clone.localPath, params.phrase);
+                    return formatSearchResults(
+                        searchResults,
+                        params.url,
+                        clone.localPath,
+                        params.phrase,
+                    );
+                }
+            }
 
-			let content = cache.get(params.url);
+            let content = cache.get(params.url);
 
-			if (!content) {
-				const result = await extract(params.url, {
-					forceClone: params.forceClone,
-					cloneManager,
-				});
-				content = result.content;
-				if (content) cache.set(params.url, content);
-			}
-			if (!content) {
-				return createNoMatchesResponse(params.url, params.phrase, "No content available");
-			}
+            if (!content) {
+                const result = await extract(params.url, {
+                    forceClone: params.forceClone,
+                    cloneManager,
+                });
+                content = result.content;
+                if (content) cache.set(params.url, content);
+            }
+            if (!content) {
+                return createNoMatchesResponse(params.url, params.phrase, "No content available");
+            }
 
-			// Case-insensitive search using regex for proper Unicode handling
-			const escapedPhrase = params.phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-			const searchRegex = new RegExp(escapedPhrase, "i");
+            // Case-insensitive search using regex for proper Unicode handling
+            const escapedPhrase = params.phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const searchRegex = new RegExp(escapedPhrase, "i");
 
-			// Find all matches with context
-			const matches: FindMatch[] = [];
-			const lines = content.split("\n");
+            // Find all matches with context
+            const matches: FindMatch[] = [];
+            const lines = content.split("\n");
 
-			for (let i = 0; i < lines.length && matches.length < MAX_FIND_MATCHES; i++) {
-				if (searchRegex.test(lines[i])) {
-					matches.push({
-						line: i + 1,
-						context: lines[i].trim(),
-					});
-				}
-			}
+            for (let i = 0; i < lines.length && matches.length < MAX_FIND_MATCHES; i++) {
+                if (searchRegex.test(lines[i])) {
+                    matches.push({
+                        line: i + 1,
+                        context: lines[i].trim(),
+                    });
+                }
+            }
 
-			if (matches.length === 0) {
-				return createNoMatchesResponse(params.url, params.phrase, "No occurrences found");
-			}
+            if (matches.length === 0) {
+                return createNoMatchesResponse(params.url, params.phrase, "No occurrences found");
+            }
 
-			// Format matches with surrounding context
-			const displayedMatches = matches.slice(0, MAX_FIND_MATCHES);
-			let resultText = `Found ${matches.length} occurrence(s) of "${params.phrase}" on ${params.url}:\n\n`;
-			resultText += displayedMatches
-				.map((m) => {
-					// Include one line of context before and after if available
-					const lineIndex = m.line - 1; // Convert to 0-indexed
-					let ctx = "";
-					if (lineIndex > 0 && lines[lineIndex - 1]) {
-						ctx += `  L${lineIndex}: ${(lines[lineIndex - 1] ?? "").trim()}\n`;
-					}
-					ctx += `> L${m.line}: ${m.context}\n`;
-					if (lineIndex < lines.length - 1 && lines[lineIndex + 1]) {
-						ctx += `  L${lineIndex + 2}: ${(lines[lineIndex + 1] ?? "").trim()}`;
-					}
-					return ctx;
-				})
-				.join("\n\n");
+            // Format matches with surrounding context
+            const displayedMatches = matches.slice(0, MAX_FIND_MATCHES);
+            let resultText = `Found ${matches.length} occurrence(s) of "${params.phrase}" on ${params.url}:\n\n`;
+            resultText += displayedMatches
+                .map((m) => {
+                    // Include one line of context before and after if available
+                    const lineIndex = m.line - 1; // Convert to 0-indexed
+                    let ctx = "";
+                    if (lineIndex > 0 && lines[lineIndex - 1]) {
+                        ctx += `  L${lineIndex}: ${(lines[lineIndex - 1] ?? "").trim()}\n`;
+                    }
+                    ctx += `> L${m.line}: ${m.context}\n`;
+                    if (lineIndex < lines.length - 1 && lines[lineIndex + 1]) {
+                        ctx += `  L${lineIndex + 2}: ${(lines[lineIndex + 1] ?? "").trim()}`;
+                    }
+                    return ctx;
+                })
+                .join("\n\n");
 
-			if (matches.length > MAX_FIND_MATCHES) {
-				resultText += `\n\n[Showing first ${MAX_FIND_MATCHES} of ${matches.length} matches]`;
-			}
+            if (matches.length > MAX_FIND_MATCHES) {
+                resultText += `\n\n[Showing first ${MAX_FIND_MATCHES} of ${matches.length} matches]`;
+            }
 
-			return {
-				content: [{ type: "text", text: resultText }],
-				details: {
-					url: params.url,
-					phrase: params.phrase,
-					matchCount: matches.length,
-				},
-			};
-		},
-	});
+            return {
+                content: [{ type: "text", text: resultText }],
+                details: {
+                    url: params.url,
+                    phrase: params.phrase,
+                    matchCount: matches.length,
+                },
+            };
+        },
+    });
 }
 
 /**
  * Create a response for no matches or no content
  */
 function createNoMatchesResponse(
-	url: string,
-	phrase: string,
-	reason: string,
+    url: string,
+    phrase: string,
+    reason: string,
 ): {
-	content: Array<{ type: string; text: string }>;
-	details: { url: string; phrase: string; matchCount: number };
+    content: Array<{ type: string; text: string }>;
+    details: { url: string; phrase: string; matchCount: number };
 } {
-	const message =
-		reason === "No content available"
-			? `No content available from ${url} to search.`
-			: `No occurrences of "${phrase}" found on ${url}.`;
+    const message =
+        reason === "No content available"
+            ? `No content available from ${url} to search.`
+            : `No occurrences of "${phrase}" found on ${url}.`;
 
-	return {
-		content: [{ type: "text", text: message }],
-		details: { url, phrase, matchCount: 0 },
-	};
+    return {
+        content: [{ type: "text", text: message }],
+        details: { url, phrase, matchCount: 0 },
+    };
 }
 
 /**
@@ -272,67 +272,67 @@ function createNoMatchesResponse(
  * @throws Error if grep fails or times out
  */
 async function searchInClone(
-	localPath: string,
-	phrase: string,
+    localPath: string,
+    phrase: string,
 ): Promise<Array<{ file: string; line: number; context: string }>> {
-	const { execFile } = await import("node:child_process");
-	const { promisify } = await import("node:util");
+    const { execFile } = await import("node:child_process");
+    const { promisify } = await import("node:util");
 
-	// Sanitize the search phrase by escaping special characters
-	// This prevents command injection and grep pattern interpretation issues
-	const sanitizedPhrase = phrase.replace(/[&;|`$(){}<>\\]/g, "\\$&").replace(/\n/g, "");
+    // Sanitize the search phrase by escaping special characters
+    // This prevents command injection and grep pattern interpretation issues
+    const sanitizedPhrase = phrase.replace(/[&;|`$(){}<>\\]/g, "\\$&").replace(/\n/g, "");
 
-	const grepAsync = promisify(execFile);
+    const grepAsync = promisify(execFile);
 
-	try {
-		const result = await grepAsync(
-			"grep",
-			["-rn", "-i", "--max-count=50", "-F", sanitizedPhrase, localPath],
-			{
-				encoding: "utf-8",
-				timeout: GREP_TIMEOUT_MS,
-			},
-		);
+    try {
+        const result = await grepAsync(
+            "grep",
+            ["-rn", "-i", "--max-count=50", "-F", sanitizedPhrase, localPath],
+            {
+                encoding: "utf-8",
+                timeout: GREP_TIMEOUT_MS,
+            },
+        );
 
-		const matches: Array<{ file: string; line: number; context: string }> = [];
-		for (const line of result.trim().split("\n")) {
-			if (!line.trim()) continue;
-			// Use -F flag for fixed string, parse with first two colons as separators
-			const colonIndex1 = line.indexOf(":");
-			const colonIndex2 = line.indexOf(":", colonIndex1 + 1);
-			if (colonIndex1 === -1 || colonIndex2 === -1) continue;
+        const matches: Array<{ file: string; line: number; context: string }> = [];
+        for (const line of result.trim().split("\n")) {
+            if (!line.trim()) continue;
+            // Use -F flag for fixed string, parse with first two colons as separators
+            const colonIndex1 = line.indexOf(":");
+            const colonIndex2 = line.indexOf(":", colonIndex1 + 1);
+            if (colonIndex1 === -1 || colonIndex2 === -1) continue;
 
-			const filePath = line.slice(0, colonIndex1);
-			const lineNum = parseInt(line.slice(colonIndex1 + 1, colonIndex2), 10);
-			const context = line.slice(colonIndex2 + 1);
+            const filePath = line.slice(0, colonIndex1);
+            const lineNum = parseInt(line.slice(colonIndex1 + 1, colonIndex2), 10);
+            const context = line.slice(colonIndex2 + 1);
 
-			if (!Number.isNaN(lineNum)) {
-				matches.push({
-					file: filePath.replace(`${localPath}/`, ""),
-					line: lineNum,
-					context,
-				});
-			}
-		}
-		return matches;
-	} catch (err: unknown) {
-		// Check if it's a timeout error
-		if (err instanceof Error) {
-			if ("code" in err && err.code === "ETIMEDOUT") {
-				throw new Error(`Search timed out after ${GREP_TIMEOUT_MS}ms in ${localPath}`);
-			}
-			// grep returns exit code 1 for no matches, which is not an error
-			if ("status" in err && err.status === 1) {
-				return [];
-			}
-			// grep returns exit code 2 for errors (file not found, permission denied, etc.)
-			if ("status" in err && err.status === 2) {
-				throw new Error(`Search failed in cloned repo: ${err.message}`);
-			}
-			throw new Error(`Search failed in cloned repo: ${err.message}`);
-		}
-		throw new Error(`Search failed in cloned repo: ${String(err)}`);
-	}
+            if (!Number.isNaN(lineNum)) {
+                matches.push({
+                    file: filePath.replace(`${localPath}/`, ""),
+                    line: lineNum,
+                    context,
+                });
+            }
+        }
+        return matches;
+    } catch (err: unknown) {
+        // Check if it's a timeout error
+        if (err instanceof Error) {
+            if ("code" in err && err.code === "ETIMEDOUT") {
+                throw new Error(`Search timed out after ${GREP_TIMEOUT_MS}ms in ${localPath}`);
+            }
+            // grep returns exit code 1 for no matches, which is not an error
+            if ("status" in err && err.status === 1) {
+                return [];
+            }
+            // grep returns exit code 2 for errors (file not found, permission denied, etc.)
+            if ("status" in err && err.status === 2) {
+                throw new Error(`Search failed in cloned repo: ${err.message}`);
+            }
+            throw new Error(`Search failed in cloned repo: ${err.message}`);
+        }
+        throw new Error(`Search failed in cloned repo: ${String(err)}`);
+    }
 }
 
 /**
@@ -344,34 +344,34 @@ async function searchInClone(
  * @returns Formatted response with content and details
  */
 function formatSearchResults(
-	matches: Array<{ file: string; line: number; context: string }>,
-	url: string,
-	localPath: string,
-	phrase: string,
+    matches: Array<{ file: string; line: number; context: string }>,
+    url: string,
+    localPath: string,
+    phrase: string,
 ): {
-	content: Array<{ type: string; text: string }>;
-	details: { url: string; phrase: string; matchCount: number; localPath: string };
+    content: Array<{ type: string; text: string }>;
+    details: { url: string; phrase: string; matchCount: number; localPath: string };
 } {
-	if (matches.length === 0) {
-		return {
-			content: [{ type: "text", text: `No occurrences found in the repository.` }],
-			details: { url, phrase, matchCount: 0, localPath },
-		};
-	}
+    if (matches.length === 0) {
+        return {
+            content: [{ type: "text", text: `No occurrences found in the repository.` }],
+            details: { url, phrase, matchCount: 0, localPath },
+        };
+    }
 
-	const displayedMatches = matches.slice(0, MAX_FIND_MATCHES);
-	let resultText = `Found ${matches.length} occurrence(s) in github repo:\n\n`;
-	resultText += `**Local path:** \`${localPath}\`\n\n`;
-	resultText += displayedMatches
-		.map((m) => `\t**${m.file}:${m.line}**\n> ${m.context}`)
-		.join("\n\n");
+    const displayedMatches = matches.slice(0, MAX_FIND_MATCHES);
+    let resultText = `Found ${matches.length} occurrence(s) in github repo:\n\n`;
+    resultText += `**Local path:** \`${localPath}\`\n\n`;
+    resultText += displayedMatches
+        .map((m) => `\t**${m.file}:${m.line}**\n> ${m.context}`)
+        .join("\n\n");
 
-	if (matches.length > MAX_FIND_MATCHES) {
-		resultText += `\n\n[Showing first ${MAX_FIND_MATCHES} of ${matches.length} matches]`;
-	}
+    if (matches.length > MAX_FIND_MATCHES) {
+        resultText += `\n\n[Showing first ${MAX_FIND_MATCHES} of ${matches.length} matches]`;
+    }
 
-	return {
-		content: [{ type: "text", text: resultText }],
-		details: { url, phrase, matchCount: matches.length, localPath },
-	};
+    return {
+        content: [{ type: "text", text: resultText }],
+        details: { url, phrase, matchCount: matches.length, localPath },
+    };
 }

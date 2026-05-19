@@ -19,7 +19,7 @@ const GITHUB_URL_PREFIX = "github.com";
  * @returns String with backticks escaped
  */
 function escapeBackticks(str: string): string {
-	return str.replace(/`/g, "\\`");
+    return str.replace(/`/g, "\\`");
 }
 
 /**
@@ -28,18 +28,18 @@ function escapeBackticks(str: string): string {
  * @returns Content, possibly truncated with a notice appended
  */
 function truncateContent(content: string): string {
-	if (content.length <= MAX_CONTENT_LENGTH) {
-		return content;
-	}
-	return content.slice(0, MAX_CONTENT_LENGTH) + TRUNCATION_NOTICE;
+    if (content.length <= MAX_CONTENT_LENGTH) {
+        return content;
+    }
+    return content.slice(0, MAX_CONTENT_LENGTH) + TRUNCATION_NOTICE;
 }
 
 export interface TreeEntry {
-	path: string;
-	type: "blob" | "tree";
-	size?: number;
-	mode?: string;
-	sha?: string;
+    path: string;
+    type: "blob" | "tree";
+    size?: number;
+    mode?: string;
+    sha?: string;
 }
 
 /**
@@ -55,12 +55,12 @@ export interface TreeEntry {
  * // => "# github.com/octocat/hello-world\n\n**Path:** `src/`\n\n**Branch:** main\n\n"
  */
 function buildHeader(owner: string, repo: string, metadata: Record<string, string>): string {
-	const metaLines = Object.entries(metadata)
-		.filter(([, value]) => value !== "")
-		.map(([key, value]) => `**${key}:** ${value}\n\n`)
-		.join("");
+    const metaLines = Object.entries(metadata)
+        .filter(([, value]) => value !== "")
+        .map(([key, value]) => `**${key}:** ${value}\n\n`)
+        .join("");
 
-	return `# ${GITHUB_URL_PREFIX}/${owner}/${repo}\n\n${metaLines}`;
+    return `# ${GITHUB_URL_PREFIX}/${owner}/${repo}\n\n${metaLines}`;
 }
 
 /**
@@ -80,49 +80,49 @@ function buildHeader(owner: string, repo: string, metadata: Record<string, strin
  * // => "# github.com/octocat/hi\n\n**Local path:** `/tmp/repo`\n\n..."
  */
 export function formatRepoOverview(
-	treeEntries: TreeEntry[],
-	readmeContent: string | null,
-	owner: string,
-	repo: string,
-	localPath: string | null,
-	ref?: string,
-	headSha?: string,
+    treeEntries: TreeEntry[],
+    readmeContent: string | null,
+    owner: string,
+    repo: string,
+    localPath: string | null,
+    ref?: string,
+    headSha?: string,
 ): string {
-	if (!owner || !repo) {
-		return "(invalid repository: missing owner or repo name)";
-	}
+    if (!owner || !repo) {
+        return "(invalid repository: missing owner or repo name)";
+    }
 
-	const metadata: Record<string, string> = {};
+    const metadata: Record<string, string> = {};
 
-	if (localPath) {
-		metadata["Local path"] = `\`${escapeBackticks(localPath)}\``;
-	}
+    if (localPath) {
+        metadata["Local path"] = `\`${escapeBackticks(localPath)}\``;
+    }
 
-	const branchInfo = ref || "default";
-	const shaInfo = headSha ? ` (sha: ${headSha.slice(0, 7)})` : "";
-	metadata.Branch = `${branchInfo}${shaInfo}`;
+    const branchInfo = ref || "default";
+    const shaInfo = headSha ? ` (sha: ${headSha.slice(0, 7)})` : "";
+    metadata.Branch = `${branchInfo}${shaInfo}`;
 
-	const parts: string[] = [buildHeader(owner, repo, metadata)];
+    const parts: string[] = [buildHeader(owner, repo, metadata)];
 
-	// Add local path exploration hints
-	if (localPath) {
-		const escaped = escapeBackticks(localPath);
-		parts.push(
-			`**You can explore this repo using:**\n`,
-			`- \`read\` with paths like \`${escaped}/src/index.ts\`\n`,
-			`- \`bash\` with \`cd ${escaped} && ...\`\n\n`,
-		);
-	}
+    // Add local path exploration hints
+    if (localPath) {
+        const escaped = escapeBackticks(localPath);
+        parts.push(
+            `**You can explore this repo using:**\n`,
+            `- \`read\` with paths like \`${escaped}/src/index.ts\`\n`,
+            `- \`bash\` with \`cd ${escaped} && ...\`\n\n`,
+        );
+    }
 
-	// Add repository tree
-	parts.push(`## Repository Tree\n\n`, "```\n", formatTree(treeEntries ?? []), "```\n\n");
+    // Add repository tree
+    parts.push(`## Repository Tree\n\n`, "```\n", formatTree(treeEntries ?? []), "```\n\n");
 
-	// Add README content if available
-	if (readmeContent) {
-		parts.push(`## README.md\n\n`, truncateContent(readmeContent));
-	}
+    // Add README content if available
+    if (readmeContent) {
+        parts.push(`## README.md\n\n`, truncateContent(readmeContent));
+    }
 
-	return parts.join("");
+    return parts.join("");
 }
 
 /**
@@ -141,33 +141,33 @@ export function formatRepoOverview(
  * // => "# github.com/octocat/hi\n\n**Path:** `src`\n\n..."
  */
 export function formatDirectoryListing(
-	entries: TreeEntry[],
-	path: string,
-	owner: string,
-	repo: string,
-	localPath: string | null,
-	ref?: string,
+    entries: TreeEntry[],
+    path: string,
+    owner: string,
+    repo: string,
+    localPath: string | null,
+    ref?: string,
 ): string {
-	if (!owner || !repo) {
-		return "(invalid repository: missing owner or repo name)";
-	}
+    if (!owner || !repo) {
+        return "(invalid repository: missing owner or repo name)";
+    }
 
-	const metadata: Record<string, string> = {
-		Path: `\`${escapeBackticks(path)}\``,
-	};
+    const metadata: Record<string, string> = {
+        Path: `\`${escapeBackticks(path)}\``,
+    };
 
-	if (localPath) {
-		metadata["Local path"] = `\`${escapeBackticks(localPath)}\``;
-	}
-	if (ref) {
-		metadata.Branch = ref;
-	}
+    if (localPath) {
+        metadata["Local path"] = `\`${escapeBackticks(localPath)}\``;
+    }
+    if (ref) {
+        metadata.Branch = ref;
+    }
 
-	const parts: string[] = [buildHeader(owner, repo, metadata)];
+    const parts: string[] = [buildHeader(owner, repo, metadata)];
 
-	parts.push(`## Directory Contents\n\n`, "```\n", formatTree(entries ?? []), "```\n\n");
+    parts.push(`## Directory Contents\n\n`, "```\n", formatTree(entries ?? []), "```\n\n");
 
-	return parts.join("");
+    return parts.join("");
 }
 
 /**
@@ -188,41 +188,41 @@ export function formatDirectoryListing(
  * // => "# github.com/octocat/hi\n\n**File:** `src/index.ts`\n\n..."
  */
 export function formatFileContent(
-	content: string,
-	filePath: string,
-	owner: string,
-	repo: string,
-	localPath: string | null,
-	fileSize?: number,
-	ref?: string,
-	encoding?: string,
+    content: string,
+    filePath: string,
+    owner: string,
+    repo: string,
+    localPath: string | null,
+    fileSize?: number,
+    ref?: string,
+    encoding?: string,
 ): string {
-	if (!owner || !repo) {
-		return "(invalid repository: missing owner or repo name)";
-	}
+    if (!owner || !repo) {
+        return "(invalid repository: missing owner or repo name)";
+    }
 
-	const metadata: Record<string, string> = {
-		File: `\`${escapeBackticks(filePath)}\``,
-	};
+    const metadata: Record<string, string> = {
+        File: `\`${escapeBackticks(filePath)}\``,
+    };
 
-	if (localPath) {
-		metadata["Local path"] = `\`${escapeBackticks(localPath)}\``;
-	}
-	if (ref) {
-		metadata.Branch = ref;
-	}
-	if (fileSize) {
-		metadata.Size = formatFileSize(fileSize);
-	}
-	if (encoding) {
-		metadata.Encoding = encoding;
-	}
+    if (localPath) {
+        metadata["Local path"] = `\`${escapeBackticks(localPath)}\``;
+    }
+    if (ref) {
+        metadata.Branch = ref;
+    }
+    if (fileSize) {
+        metadata.Size = formatFileSize(fileSize);
+    }
+    if (encoding) {
+        metadata.Encoding = encoding;
+    }
 
-	const parts: string[] = [buildHeader(owner, repo, metadata)];
+    const parts: string[] = [buildHeader(owner, repo, metadata)];
 
-	parts.push(`## File Contents\n\n`, "```\n", truncateContent(content), "\n```\n");
+    parts.push(`## File Contents\n\n`, "```\n", truncateContent(content), "\n```\n");
 
-	return parts.join("");
+    return parts.join("");
 }
 
 /**
@@ -242,32 +242,32 @@ export function formatFileContent(
  * // => "# Commit abc1234\n\n**Repository:** github.com/octocat/hi\n\n..."
  */
 export function formatCommitView(
-	sha: string,
-	message: string,
-	author: string,
-	date: string,
-	diff?: string,
-	owner?: string,
-	repo?: string,
+    sha: string,
+    message: string,
+    author: string,
+    date: string,
+    diff?: string,
+    owner?: string,
+    repo?: string,
 ): string {
-	const parts: string[] = [`# Commit ${sha.slice(0, 7)}\n\n`];
+    const parts: string[] = [`# Commit ${sha.slice(0, 7)}\n\n`];
 
-	if (owner && repo) {
-		parts.push(`**Repository:** ${GITHUB_URL_PREFIX}/${owner}/${repo}\n\n`);
-	}
+    if (owner && repo) {
+        parts.push(`**Repository:** ${GITHUB_URL_PREFIX}/${owner}/${repo}\n\n`);
+    }
 
-	parts.push(
-		`**SHA:** \`${sha}\`\n\n`,
-		`**Author:** ${author}\n\n`,
-		`**Date:** ${date}\n\n`,
-		`**Message:**\n\n${message}\n\n`,
-	);
+    parts.push(
+        `**SHA:** \`${sha}\`\n\n`,
+        `**Author:** ${author}\n\n`,
+        `**Date:** ${date}\n\n`,
+        `**Message:**\n\n${message}\n\n`,
+    );
 
-	if (diff) {
-		parts.push(`## Diff\n\n`, "```\n", truncateContent(diff), "\n```\n");
-	}
+    if (diff) {
+        parts.push(`## Diff\n\n`, "```\n", truncateContent(diff), "\n```\n");
+    }
 
-	return parts.join("");
+    return parts.join("");
 }
 
 /**
@@ -284,37 +284,37 @@ export function formatCommitView(
  * // => "├── src/\n└── README.md (42 B)"
  */
 function formatTree(entries: TreeEntry[], prefix: string = ""): string {
-	if (!entries || entries.length === 0) {
-		return "(empty)";
-	}
+    if (!entries || entries.length === 0) {
+        return "(empty)";
+    }
 
-	// Sort entries: directories first, then files, alphabetically
-	const sorted = [...entries].sort((a, b) => {
-		const aIsDir = a.type === "tree";
-		const bIsDir = b.type === "tree";
-		if (aIsDir && !bIsDir) return -1;
-		if (!aIsDir && bIsDir) return 1;
-		return a.path.localeCompare(b.path);
-	});
+    // Sort entries: directories first, then files, alphabetically
+    const sorted = [...entries].sort((a, b) => {
+        const aIsDir = a.type === "tree";
+        const bIsDir = b.type === "tree";
+        if (aIsDir && !bIsDir) return -1;
+        if (!aIsDir && bIsDir) return 1;
+        return a.path.localeCompare(b.path);
+    });
 
-	const lines: string[] = [];
+    const lines: string[] = [];
 
-	for (let i = 0; i < sorted.length; i++) {
-		const entry = sorted[i];
-		const isLast = i === sorted.length - 1;
-		const connector = isLast ? "└── " : "├── ";
+    for (let i = 0; i < sorted.length; i++) {
+        const entry = sorted[i];
+        const isLast = i === sorted.length - 1;
+        const connector = isLast ? "└── " : "├── ";
 
-		let line = `${prefix}${connector}${entry.path}${entry.type === "tree" ? "/" : ""}`;
+        let line = `${prefix}${connector}${entry.path}${entry.type === "tree" ? "/" : ""}`;
 
-		// Add size for files
-		if (entry.type === "blob" && entry.size) {
-			line += ` (${formatFileSize(entry.size)})`;
-		}
+        // Add size for files
+        if (entry.type === "blob" && entry.size) {
+            line += ` (${formatFileSize(entry.size)})`;
+        }
 
-		lines.push(line);
-	}
+        lines.push(line);
+    }
 
-	return lines.join("\n");
+    return lines.join("\n");
 }
 
 /**
@@ -332,14 +332,14 @@ function formatTree(entries: TreeEntry[], prefix: string = ""): string {
  * formatFileSize(1_610_612_736) // => "1.5 GB"
  */
 function formatFileSize(bytes: number): string {
-	if (bytes < 1024) {
-		return `${bytes} B`;
-	}
-	if (bytes < 1024 * 1024) {
-		return `${(bytes / 1024).toFixed(1)} KB`;
-	}
-	if (bytes < 1024 ** 3) {
-		return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-	}
-	return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
+    if (bytes < 1024) {
+        return `${bytes} B`;
+    }
+    if (bytes < 1024 * 1024) {
+        return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    if (bytes < 1024 ** 3) {
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+    return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
 }

@@ -16,26 +16,26 @@ let _tempTracker: TempDirTracker | undefined;
 let _handlersRegistered = false;
 
 export function getSharedState(pi: ExtensionAPI) {
-	if (!_cache) {
-		_cache = createPageCache();
-		_cloneManager = new CloneManager();
-		_tempTracker = new TempDirTracker();
+    if (!_cache) {
+        _cache = createPageCache();
+        _cloneManager = new CloneManager();
+        _tempTracker = new TempDirTracker();
 
-		// Register session handlers once (shared across all tool extensions)
-		if (!_handlersRegistered) {
-			_handlersRegistered = true;
+        // Register session handlers once (shared across all tool extensions)
+        if (!_handlersRegistered) {
+            _handlersRegistered = true;
 
-			// Clear clone cache on session change
-			pi.on("session_start", async () => {
-				if (_cloneManager) await _cloneManager.clear();
-			});
+            // Clear clone cache on session change
+            pi.on("session_start", async () => {
+                if (_cloneManager) await _cloneManager.clear();
+            });
 
-			// Clear temp dirs on session change
-			pi.on("session_end", async () => {
-				if (_tempTracker) await _tempTracker.clear();
-			});
-		}
-	}
-	/* biome-ignore lint/style/noNonNullAssertion: lazy init guarantees values are set */
-	return { cache: _cache!, cloneManager: _cloneManager!, tempTracker: _tempTracker! };
+            // Clear temp dirs on session change
+            pi.on("session_end", async () => {
+                if (_tempTracker) await _tempTracker.clear();
+            });
+        }
+    }
+    /* biome-ignore lint/style/noNonNullAssertion: lazy init guarantees values are set */
+    return { cache: _cache!, cloneManager: _cloneManager!, tempTracker: _tempTracker! };
 }

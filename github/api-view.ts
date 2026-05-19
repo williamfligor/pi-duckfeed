@@ -11,28 +11,28 @@ import { GITHUB_API_TIMEOUT_MS } from "../constants";
 import type { TreeEntry } from "./format";
 
 export interface ApiViewOptions {
-	execSync?: typeof execFileSync; // For DI in tests
+    execSync?: typeof execFileSync; // For DI in tests
 }
 
 /**
  * Validate owner and repo parameters
  */
 function validateOwnerRepo(owner: string, repo: string): void {
-	if (!owner || !repo) {
-		throw new Error("owner and repo parameters are required");
-	}
-	if (owner.includes("/") || repo.includes("/")) {
-		throw new Error("owner and repo should not contain '/'");
-	}
+    if (!owner || !repo) {
+        throw new Error("owner and repo parameters are required");
+    }
+    if (owner.includes("/") || repo.includes("/")) {
+        throw new Error("owner and repo should not contain '/'");
+    }
 }
 
 /**
  * Validate path parameter to prevent injection
  */
 function validatePath(path: string): void {
-	if (path.includes("?") || path.includes("#") || path.includes("..") || path.startsWith("/")) {
-		throw new Error(`Invalid path: ${path}`);
-	}
+    if (path.includes("?") || path.includes("#") || path.includes("..") || path.startsWith("/")) {
+        throw new Error(`Invalid path: ${path}`);
+    }
 }
 
 /**
@@ -40,100 +40,100 @@ function validatePath(path: string): void {
  * Falls back to "main" then "master" if the API call fails.
  */
 async function getDefaultRef(
-	owner: string,
-	repo: string,
-	ref?: string,
-	options: ApiViewOptions = {},
+    owner: string,
+    repo: string,
+    ref?: string,
+    options: ApiViewOptions = {},
 ): Promise<string> {
-	if (ref) return ref;
+    if (ref) return ref;
 
-	// Try to get the actual default branch from the repo metadata
-	try {
-		const repoData = await ghApi(`repos/${owner}/${repo}`, options);
-		const defaultBranch = (repoData as Record<string, unknown>).default_branch as
-			| string
-			| undefined;
-		if (defaultBranch) return defaultBranch;
-	} catch {
-		// API call failed (rate limit, auth, etc.) — fall through to heuristic
-	}
+    // Try to get the actual default branch from the repo metadata
+    try {
+        const repoData = await ghApi(`repos/${owner}/${repo}`, options);
+        const defaultBranch = (repoData as Record<string, unknown>).default_branch as
+            | string
+            | undefined;
+        if (defaultBranch) return defaultBranch;
+    } catch {
+        // API call failed (rate limit, auth, etc.) — fall through to heuristic
+    }
 
-	// Heuristic fallback
-	return "main";
+    // Heuristic fallback
+    return "main";
 }
 
 /**
  * Execute gh api command with fallback to direct fetch
  */
 async function ghApi(
-	endpoint: string,
-	options: ApiViewOptions = {},
-	headers: Record<string, string> = {},
-	textResponse: boolean = false,
+    endpoint: string,
+    options: ApiViewOptions = {},
+    headers: Record<string, string> = {},
+    textResponse: boolean = false,
 ): Promise<unknown> {
-	const { execSync = execFileSync } = options;
+    const { execSync = execFileSync } = options;
 
-	// Try gh api first (handles auth for private repos)
-	let ghError: Error | undefined;
-	try {
-		const args = ["api", endpoint];
-		for (const [key, value] of Object.entries(headers)) {
-			args.push("-H", `${key}: ${value}`);
-		}
-		const result = execSync("gh", args, {
-			encoding: "utf-8",
-			timeout: GITHUB_API_TIMEOUT_MS,
-		});
-		if (textResponse) {
-			return result;
-		}
-		return JSON.parse(result);
-	} catch (error) {
-		ghError = error as Error;
-	}
+    // Try gh api first (handles auth for private repos)
+    let ghError: Error | undefined;
+    try {
+        const args = ["api", endpoint];
+        for (const [key, value] of Object.entries(headers)) {
+            args.push("-H", `${key}: ${value}`);
+        }
+        const result = execSync("gh", args, {
+            encoding: "utf-8",
+            timeout: GITHUB_API_TIMEOUT_MS,
+        });
+        if (textResponse) {
+            return result;
+        }
+        return JSON.parse(result);
+    } catch (error) {
+        ghError = error as Error;
+    }
 
-	// Fallback to unauthenticated fetch
-	try {
-		const url = `https://api.github.com${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), GITHUB_API_TIMEOUT_MS);
-		const response = await fetch(url, {
-			signal: controller.signal,
-			headers: {
-				"User-Agent": "pi-duckfeed-extension",
-				Accept: "application/vnd.github.v3+json",
-				...headers,
-			},
-		});
-		clearTimeout(timeoutId);
+    // Fallback to unauthenticated fetch
+    try {
+        const url = `https://api.github.com${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), GITHUB_API_TIMEOUT_MS);
+        const response = await fetch(url, {
+            signal: controller.signal,
+            headers: {
+                "User-Agent": "pi-duckfeed-extension",
+                Accept: "application/vnd.github.v3+json",
+                ...headers,
+            },
+        });
+        clearTimeout(timeoutId);
 
-		if (!response.ok) {
-			throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
-		}
+        if (!response.ok) {
+            throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+        }
 
-		if (textResponse) {
-			// Ensure response is a proper Response object before calling .text()
-			if (typeof response.text !== "function") {
-				throw new Error(`Invalid response from GitHub API: expected Response object`);
-			}
-			return response.text();
-		}
+        if (textResponse) {
+            // Ensure response is a proper Response object before calling .text()
+            if (typeof response.text !== "function") {
+                throw new Error(`Invalid response from GitHub API: expected Response object`);
+            }
+            return response.text();
+        }
 
-		// Ensure response is a proper Response object before calling .json()
-		if (typeof response.json !== "function") {
-			throw new Error(`Invalid response from GitHub API: expected Response object`);
-		}
+        // Ensure response is a proper Response object before calling .json()
+        if (typeof response.json !== "function") {
+            throw new Error(`Invalid response from GitHub API: expected Response object`);
+        }
 
-		return response.json();
-	} catch (fetchError) {
-		const error = fetchError as Error | { message: string };
-		throw new Error(
-			`Failed to access GitHub API for ${endpoint}. ` +
-				`gh CLI not available or rate limited. Original error: ${error.message}. ` +
-				`Try forceClone:true.`,
-			{ cause: ghError || error },
-		);
-	}
+        return response.json();
+    } catch (fetchError) {
+        const error = fetchError as Error | { message: string };
+        throw new Error(
+            `Failed to access GitHub API for ${endpoint}. ` +
+                `gh CLI not available or rate limited. Original error: ${error.message}. ` +
+                `Try forceClone:true.`,
+            { cause: ghError || error },
+        );
+    }
 }
 
 /**
@@ -145,47 +145,47 @@ async function ghApi(
  * @returns Markdown representation of repository tree and README
  */
 export async function getRepoTreeView(
-	owner: string,
-	repo: string,
-	ref?: string,
-	options: ApiViewOptions = {},
+    owner: string,
+    repo: string,
+    ref?: string,
+    options: ApiViewOptions = {},
 ): Promise<string> {
-	validateOwnerRepo(owner, repo);
-	const refToUse = await getDefaultRef(owner, repo, ref, options);
+    validateOwnerRepo(owner, repo);
+    const refToUse = await getDefaultRef(owner, repo, ref, options);
 
-	// Get the top-level tree only (no recursive=1) to show just root files/folders
-	const treeData = await ghApi(`repos/${owner}/${repo}/git/trees/${refToUse}`, options);
+    // Get the top-level tree only (no recursive=1) to show just root files/folders
+    const treeData = await ghApi(`repos/${owner}/${repo}/git/trees/${refToUse}`, options);
 
-	const treeEntries: TreeEntry[] = (treeData.tree || []).map(
-		(item: { path: string; type: string; size?: number; mode?: number; sha?: string }) => ({
-			path: item.path,
-			type: item.type as "blob" | "tree",
-			size: item.size,
-			mode: item.mode,
-			sha: item.sha,
-		}),
-	);
+    const treeEntries: TreeEntry[] = (treeData.tree || []).map(
+        (item: { path: string; type: string; size?: number; mode?: number; sha?: string }) => ({
+            path: item.path,
+            type: item.type as "blob" | "tree",
+            size: item.size,
+            mode: item.mode,
+            sha: item.sha,
+        }),
+    );
 
-	// Get README
-	let readmeContent: string | null = null;
-	try {
-		const readmeData = await ghApi(`repos/${owner}/${repo}/readme?ref=${refToUse}`, options);
-		// README content is base64 encoded
-		readmeContent = Buffer.from(readmeData.content, "base64").toString("utf-8");
-	} catch (error: unknown) {
-		const err = error as Error | { message: string };
-		// Distinguish between expected (404) and unexpected errors
-		if (err.message.includes("404")) {
-			// README not found, that's ok
-		} else {
-			// Log unexpected errors (rate limit, auth failure, network errors)
-			console.debug(`Could not fetch README for ${owner}/${repo}: ${err.message}`);
-		}
-	}
+    // Get README
+    let readmeContent: string | null = null;
+    try {
+        const readmeData = await ghApi(`repos/${owner}/${repo}/readme?ref=${refToUse}`, options);
+        // README content is base64 encoded
+        readmeContent = Buffer.from(readmeData.content, "base64").toString("utf-8");
+    } catch (error: unknown) {
+        const err = error as Error | { message: string };
+        // Distinguish between expected (404) and unexpected errors
+        if (err.message.includes("404")) {
+            // README not found, that's ok
+        } else {
+            // Log unexpected errors (rate limit, auth failure, network errors)
+            console.debug(`Could not fetch README for ${owner}/${repo}: ${err.message}`);
+        }
+    }
 
-	// Import format function dynamically to avoid circular dependency
-	const { formatRepoOverview } = await import("./format");
-	return formatRepoOverview(treeEntries, readmeContent, owner, repo, null, refToUse);
+    // Import format function dynamically to avoid circular dependency
+    const { formatRepoOverview } = await import("./format");
+    return formatRepoOverview(treeEntries, readmeContent, owner, repo, null, refToUse);
 }
 
 /**
@@ -198,31 +198,31 @@ export async function getRepoTreeView(
  * @returns Markdown representation of directory listing
  */
 export async function getDirectoryListing(
-	owner: string,
-	repo: string,
-	path: string,
-	ref?: string,
-	options: ApiViewOptions = {},
+    owner: string,
+    repo: string,
+    path: string,
+    ref?: string,
+    options: ApiViewOptions = {},
 ): Promise<string> {
-	validateOwnerRepo(owner, repo);
-	validatePath(path);
-	const refToUse = await getDefaultRef(owner, repo, ref, options);
+    validateOwnerRepo(owner, repo);
+    validatePath(path);
+    const refToUse = await getDefaultRef(owner, repo, ref, options);
 
-	// Get the directory contents
-	const dirData = await ghApi(`repos/${owner}/${repo}/contents/${path}?ref=${refToUse}`, options);
+    // Get the directory contents
+    const dirData = await ghApi(`repos/${owner}/${repo}/contents/${path}?ref=${refToUse}`, options);
 
-	const treeEntries: TreeEntry[] = (Array.isArray(dirData) ? dirData : []).map(
-		(item: { name: string; type: string; size?: number; sha?: string }) => ({
-			path: item.name,
-			type: item.type as "blob" | "tree",
-			size: item.size,
-			sha: item.sha,
-		}),
-	);
+    const treeEntries: TreeEntry[] = (Array.isArray(dirData) ? dirData : []).map(
+        (item: { name: string; type: string; size?: number; sha?: string }) => ({
+            path: item.name,
+            type: item.type as "blob" | "tree",
+            size: item.size,
+            sha: item.sha,
+        }),
+    );
 
-	// Import format function dynamically
-	const { formatDirectoryListing } = await import("./format");
-	return formatDirectoryListing(treeEntries, path, owner, repo, null, refToUse);
+    // Import format function dynamically
+    const { formatDirectoryListing } = await import("./format");
+    return formatDirectoryListing(treeEntries, path, owner, repo, null, refToUse);
 }
 
 /**
@@ -235,42 +235,42 @@ export async function getDirectoryListing(
  * @returns Markdown representation of file content
  */
 export async function getFileContent(
-	owner: string,
-	repo: string,
-	path: string,
-	ref?: string,
-	options: ApiViewOptions = {},
+    owner: string,
+    repo: string,
+    path: string,
+    ref?: string,
+    options: ApiViewOptions = {},
 ): Promise<string> {
-	validateOwnerRepo(owner, repo);
-	validatePath(path);
-	const refToUse = await getDefaultRef(owner, repo, ref, options);
+    validateOwnerRepo(owner, repo);
+    validatePath(path);
+    const refToUse = await getDefaultRef(owner, repo, ref, options);
 
-	// Get file content
-	const fileData = await ghApi(
-		`repos/${owner}/${repo}/contents/${path}?ref=${refToUse}`,
-		options,
-	);
+    // Get file content
+    const fileData = await ghApi(
+        `repos/${owner}/${repo}/contents/${path}?ref=${refToUse}`,
+        options,
+    );
 
-	// Validate content exists before decoding
-	if (!fileData.content) {
-		throw new Error(`No content returned for ${path}`);
-	}
+    // Validate content exists before decoding
+    if (!fileData.content) {
+        throw new Error(`No content returned for ${path}`);
+    }
 
-	// Content is base64 encoded
-	const content = Buffer.from(fileData.content, fileData.encoding || "base64").toString("utf-8");
+    // Content is base64 encoded
+    const content = Buffer.from(fileData.content, fileData.encoding || "base64").toString("utf-8");
 
-	// Import format function dynamically
-	const { formatFileContent } = await import("./format");
-	return formatFileContent(
-		content,
-		path,
-		owner,
-		repo,
-		null,
-		fileData.size,
-		refToUse,
-		fileData.encoding,
-	);
+    // Import format function dynamically
+    const { formatFileContent } = await import("./format");
+    return formatFileContent(
+        content,
+        path,
+        owner,
+        repo,
+        null,
+        fileData.size,
+        refToUse,
+        fileData.encoding,
+    );
 }
 
 /**
@@ -282,43 +282,43 @@ export async function getFileContent(
  * @returns Markdown representation of commit info
  */
 export async function getCommitView(
-	owner: string,
-	repo: string,
-	sha: string,
-	options: ApiViewOptions = {},
+    owner: string,
+    repo: string,
+    sha: string,
+    options: ApiViewOptions = {},
 ): Promise<string> {
-	validateOwnerRepo(owner, repo);
-	// Get commit info
-	const commitData = await ghApi(`repos/${owner}/${repo}/commits/${sha}`, options);
+    validateOwnerRepo(owner, repo);
+    // Get commit info
+    const commitData = await ghApi(`repos/${owner}/${repo}/commits/${sha}`, options);
 
-	let diff: string | undefined;
-	try {
-		// Get diff with special Accept header - use textResponse to avoid JSON parsing
-		const diffResponse = await ghApi(
-			`repos/${owner}/${repo}/commits/${sha}`,
-			options,
-			{ Accept: "application/vnd.github.v3.diff" },
-			true, // textResponse
-		);
-		if (typeof diffResponse === "string") {
-			diff = diffResponse;
-		}
-	} catch (error: unknown) {
-		const err = error as Error | { message: string };
-		// Distinguish between expected and unexpected errors
-		if (err.message.includes("404") || err.message.includes("Not Found")) {
-			// Diff not available, that's ok
-		} else {
-			// Log unexpected errors
-			console.debug(`Could not fetch diff for ${owner}/${repo}@${sha}: ${err.message}`);
-		}
-	}
+    let diff: string | undefined;
+    try {
+        // Get diff with special Accept header - use textResponse to avoid JSON parsing
+        const diffResponse = await ghApi(
+            `repos/${owner}/${repo}/commits/${sha}`,
+            options,
+            { Accept: "application/vnd.github.v3.diff" },
+            true, // textResponse
+        );
+        if (typeof diffResponse === "string") {
+            diff = diffResponse;
+        }
+    } catch (error: unknown) {
+        const err = error as Error | { message: string };
+        // Distinguish between expected and unexpected errors
+        if (err.message.includes("404") || err.message.includes("Not Found")) {
+            // Diff not available, that's ok
+        } else {
+            // Log unexpected errors
+            console.debug(`Could not fetch diff for ${owner}/${repo}@${sha}: ${err.message}`);
+        }
+    }
 
-	const message = commitData.commit?.message || "";
-	const author = commitData.commit?.author?.name || commitData.author?.login || "Unknown";
-	const date = commitData.commit?.author?.date || commitData.commit?.committer?.date || "";
+    const message = commitData.commit?.message || "";
+    const author = commitData.commit?.author?.name || commitData.author?.login || "Unknown";
+    const date = commitData.commit?.author?.date || commitData.commit?.committer?.date || "";
 
-	// Import format function dynamically
-	const { formatCommitView: formatCommit } = await import("./format");
-	return formatCommit(sha, message, author, date, diff, owner, repo);
+    // Import format function dynamically
+    const { formatCommitView: formatCommit } = await import("./format");
+    return formatCommit(sha, message, author, date, diff, owner, repo);
 }

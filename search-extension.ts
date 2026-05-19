@@ -7,5 +7,5 @@ import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { registerSearchTool } from "./tools";
 
 export default function searchExtension(pi: ExtensionAPI) {
-	registerSearchTool(pi);
+    registerSearchTool(pi);
 }

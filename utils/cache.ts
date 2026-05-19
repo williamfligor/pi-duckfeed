@@ -10,8 +10,8 @@ import type { PageCache } from "../types";
  * Internal cache entry with TTL support
  */
 interface CacheEntry {
-	content: string;
-	timestamp: number;
+    content: string;
+    timestamp: number;
 }
 
 /**
@@ -32,98 +32,98 @@ interface CacheEntry {
  * const content = cache.get('https://example.com');
  */
 export function createPageCache(options?: { maxSize?: number; ttlMs?: number }): PageCache {
-	const maxSize = options?.maxSize ?? MAX_CACHE_SIZE;
-	const ttlMs = options?.ttlMs ?? 0;
-	const cache = new Map<string, CacheEntry>();
+    const maxSize = options?.maxSize ?? MAX_CACHE_SIZE;
+    const ttlMs = options?.ttlMs ?? 0;
+    const cache = new Map<string, CacheEntry>();
 
-	/**
-	 * Validate and sanitize URL for use as cache key
-	 */
-	function validateUrl(url: string): string {
-		if (!url || typeof url !== "string") {
-			throw new Error("Invalid URL: URL must be a non-empty string");
-		}
+    /**
+     * Validate and sanitize URL for use as cache key
+     */
+    function validateUrl(url: string): string {
+        if (!url || typeof url !== "string") {
+            throw new Error("Invalid URL: URL must be a non-empty string");
+        }
 
-		const trimmed = url.trim();
-		if (trimmed.length === 0) {
-			throw new Error("Invalid URL: URL cannot be empty or whitespace");
-		}
+        const trimmed = url.trim();
+        if (trimmed.length === 0) {
+            throw new Error("Invalid URL: URL cannot be empty or whitespace");
+        }
 
-		// Limit URL length to prevent memory issues with extremely long keys
-		const MAX_URL_LENGTH = 2048;
-		if (trimmed.length > MAX_URL_LENGTH) {
-			throw new Error(`URL exceeds maximum length of ${MAX_URL_LENGTH} characters`);
-		}
+        // Limit URL length to prevent memory issues with extremely long keys
+        const MAX_URL_LENGTH = 2048;
+        if (trimmed.length > MAX_URL_LENGTH) {
+            throw new Error(`URL exceeds maximum length of ${MAX_URL_LENGTH} characters`);
+        }
 
-		return trimmed;
-	}
+        return trimmed;
+    }
 
-	/**
-	 * Check if a cache entry has expired based on TTL
-	 */
-	function isExpired(entry: CacheEntry): boolean {
-		if (ttlMs === 0) return false;
-		return Date.now() - entry.timestamp > ttlMs;
-	}
-	return {
-		get(url: string) {
-			const entry = cache.get(url);
-			if (entry === undefined) {
-				return undefined;
-			}
+    /**
+     * Check if a cache entry has expired based on TTL
+     */
+    function isExpired(entry: CacheEntry): boolean {
+        if (ttlMs === 0) return false;
+        return Date.now() - entry.timestamp > ttlMs;
+    }
+    return {
+        get(url: string) {
+            const entry = cache.get(url);
+            if (entry === undefined) {
+                return undefined;
+            }
 
-			// Check TTL expiration
-			if (isExpired(entry)) {
-				cache.delete(url);
-				return undefined;
-			}
-			// Move to end (most recently used)
-			cache.delete(url);
-			cache.set(url, entry);
-			return entry.content;
-		},
-		has(url: string): boolean {
-			const entry = cache.get(url);
-			if (entry === undefined) {
-				return false;
-			}
+            // Check TTL expiration
+            if (isExpired(entry)) {
+                cache.delete(url);
+                return undefined;
+            }
+            // Move to end (most recently used)
+            cache.delete(url);
+            cache.set(url, entry);
+            return entry.content;
+        },
+        has(url: string): boolean {
+            const entry = cache.get(url);
+            if (entry === undefined) {
+                return false;
+            }
 
-			// Check TTL expiration and clean up if expired
-			if (isExpired(entry)) {
-				cache.delete(url);
-				return false;
-			}
+            // Check TTL expiration and clean up if expired
+            if (isExpired(entry)) {
+                cache.delete(url);
+                return false;
+            }
 
-			// Update LRU position
-			cache.delete(url);
-			cache.set(url, entry);
-			return true;
-		},
-		set(url: string, content: string) {
-			// Validate URL
-			url = validateUrl(url);
+            // Update LRU position
+            cache.delete(url);
+            cache.set(url, entry);
+            return true;
+        },
+        set(url: string, content: string) {
+            // Validate URL
+            url = validateUrl(url);
 
-			// Validate content size to prevent memory exhaustion
-			if (content.length > MAX_CONTENT_LENGTH) {
-				console.warn(
-					`Content for ${url.substring(0, 50)}... exceeds max length (${MAX_CONTENT_LENGTH} chars), skipping cache`,
-				);
-				return;
-			}
-			// Remove if exists to update position
-			if (cache.has(url)) {
-				cache.delete(url);
-			}
+            // Validate content size to prevent memory exhaustion
+            if (content.length > MAX_CONTENT_LENGTH) {
+                console.warn(
+                    `Content for ${url.substring(0, 50)}... exceeds max length (${MAX_CONTENT_LENGTH} chars), skipping cache`,
+                );
+                return;
+            }
+            // Remove if exists to update position
+            if (cache.has(url)) {
+                cache.delete(url);
+            }
 
-			cache.set(url, { content, timestamp: Date.now() });
-			// Evict oldest entries if cache grows too large
-			if (cache.size > maxSize) {
-				const firstKey = cache.keys().next().value;
-				if (firstKey) cache.delete(firstKey);
-			}
-		},
-		clear() {
-			cache.clear();
-		},
-	};
+            cache.set(url, { content, timestamp: Date.now() });
+            // Evict oldest entries if cache grows too large
+            if (cache.size > maxSize) {
+                const firstKey = cache.keys().next().value;
+                if (firstKey) cache.delete(firstKey);
+            }
+        },
+        clear() {
+            cache.clear();
+        },
+    };
 }
