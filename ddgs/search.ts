@@ -59,7 +59,7 @@ except Exception as e:
 	// Pass script via -c flag to avoid shell interpolation
 	let output: string;
 	try {
-		output = execFileSync("uv", ["run", "--with", "ddgs", "python3", "-c", script], {
+		output = execFileSync("uv", ["run", "--python", ">3.10", "--with", "ddgs", "python3", "-c", script], {
 			encoding: "utf-8",
 			timeout: SEARCH_TIMEOUT_MS,
 			maxBuffer: 10 * 1024 * 1024, // 10MB buffer for search results
