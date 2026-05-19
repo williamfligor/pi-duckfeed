@@ -90,6 +90,60 @@ export function registerFindTool(pi: ExtensionAPI, options: FindToolOptions): vo
 			return text;
 		},
 
+		renderResult(result, { expanded, isPartial }, theme, context) {
+			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
+
+			if (isPartial) {
+				text.setText(theme.fg("warning", "Searching page..."));
+				return text;
+			}
+
+			const details = (result.details ?? {}) as {
+				url?: string;
+				phrase?: string;
+				matchCount?: number;
+				localPath?: string;
+			};
+
+			if (!expanded) {
+				const matchCount = details.matchCount ?? 0;
+				let summary =
+					matchCount === 0 ? theme.fg("muted", "No matches") : theme.fg("success", "✓ ");
+
+				if (matchCount > 0) {
+					summary += theme.fg("muted", `${matchCount} match(es)`);
+				} else {
+					summary += theme.fg("dim", " found");
+				}
+
+				if (details.phrase) {
+					const displayPhrase =
+						details.phrase.length > 60
+							? `${details.phrase.slice(0, 57)}...`
+							: details.phrase;
+					summary += theme.fg("dim", ` for "${displayPhrase}"`);
+				}
+
+				if (details.localPath) {
+					summary += theme.fg("dim", " in local clone");
+				}
+
+				summary += theme.fg("dim", " — Ctrl-o for full output");
+				text.setText(summary);
+				return text;
+			}
+
+			let fullText = "";
+			for (const item of result.content ?? []) {
+				if (item.type === "text" && typeof item.text === "string") {
+					fullText = item.text;
+					break;
+				}
+			}
+			text.setText(fullText || theme.fg("dim", "(no output)"));
+			return text;
+		},
+
 		async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
 			// Input validation
 			if (!params.phrase || params.phrase.trim() === "") {
@@ -108,7 +162,12 @@ export function registerFindTool(pi: ExtensionAPI, options: FindToolOptions): vo
 				const clone = cloneManager.get(gitHubInfo.owner, gitHubInfo.repo);
 				if (clone) {
 					const searchResults = await searchInClone(clone.localPath, params.phrase);
-					return formatSearchResults(searchResults, params.url, clone.localPath);
+					return formatSearchResults(
+						searchResults,
+						params.url,
+						clone.localPath,
+						params.phrase,
+					);
 				}
 			}
 
@@ -288,14 +347,15 @@ function formatSearchResults(
 	matches: Array<{ file: string; line: number; context: string }>,
 	url: string,
 	localPath: string,
+	phrase: string,
 ): {
 	content: Array<{ type: string; text: string }>;
-	details: { url: string; matchCount: number; localPath: string };
+	details: { url: string; phrase: string; matchCount: number; localPath: string };
 } {
 	if (matches.length === 0) {
 		return {
 			content: [{ type: "text", text: `No occurrences found in the repository.` }],
-			details: { url, matchCount: 0, localPath },
+			details: { url, phrase, matchCount: 0, localPath },
 		};
 	}
 
@@ -312,6 +372,6 @@ function formatSearchResults(
 
 	return {
 		content: [{ type: "text", text: resultText }],
-		details: { url, matchCount: matches.length, localPath },
+		details: { url, phrase, matchCount: matches.length, localPath },
 	};
 }

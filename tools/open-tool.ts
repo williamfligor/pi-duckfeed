@@ -75,6 +75,51 @@ export function registerOpenTool(pi: ExtensionAPI, options: OpenToolOptions): vo
 			return text;
 		},
 
+		renderResult(result, { expanded, isPartial }, theme, context) {
+			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
+
+			if (isPartial) {
+				text.setText(theme.fg("warning", "Opening page..."));
+				return text;
+			}
+
+			const details = (result.details ?? {}) as {
+				url?: string;
+				contentLength?: number;
+				truncated?: boolean;
+				method?: string;
+			};
+
+			if (!expanded) {
+				const url = details.url ?? "(unknown URL)";
+				const displayUrl = url.length > 50 ? `...${url.slice(-47)}` : url;
+				let summary = theme.fg("success", "✓ ");
+				summary += theme.fg("muted", displayUrl);
+				if (details.method) {
+					summary += theme.fg("dim", ` [${details.method}]`);
+				}
+				if (typeof details.contentLength === "number") {
+					summary += theme.fg(
+						"dim",
+						` (${details.contentLength.toLocaleString()} chars)`,
+					);
+				}
+				summary += theme.fg("dim", " — Ctrl-o for full output");
+				text.setText(summary);
+				return text;
+			}
+
+			let fullText = "";
+			for (const item of result.content ?? []) {
+				if (item.type === "text" && typeof item.text === "string") {
+					fullText = item.text;
+					break;
+				}
+			}
+			text.setText(fullText || theme.fg("dim", "(no output)"));
+			return text;
+		},
+
 		async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
 			// Validate URL
 			let parsedUrl: URL;

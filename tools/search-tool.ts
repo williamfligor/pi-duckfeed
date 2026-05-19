@@ -69,6 +69,45 @@ export function registerSearchTool(pi: ExtensionAPI, options: SearchToolOptions 
 			return text;
 		},
 
+		renderResult(result, { expanded, isPartial }, theme, context) {
+			const text =
+				context.lastComponent instanceof Text ? context.lastComponent : new Text("", 0, 0);
+
+			if (isPartial) {
+				text.setText(theme.fg("warning", "Searching the web..."));
+				return text;
+			}
+
+			const details = (result.details ?? {}) as {
+				query?: string;
+				resultCount?: number;
+			};
+
+			if (!expanded) {
+				const query = details.query ?? "";
+				const displayQuery = query.length > 60 ? `${query.slice(0, 57)}...` : query;
+				const resultCount = details.resultCount ?? 0;
+				let summary = theme.fg("success", "✓ ");
+				summary += theme.fg("muted", `${resultCount} result(s)`);
+				if (displayQuery) {
+					summary += theme.fg("dim", ` for "${displayQuery}"`);
+				}
+				summary += theme.fg("dim", " — Ctrl-o for full output");
+				text.setText(summary);
+				return text;
+			}
+
+			let fullText = "";
+			for (const item of result.content ?? []) {
+				if (item.type === "text" && typeof item.text === "string") {
+					fullText = item.text;
+					break;
+				}
+			}
+			text.setText(fullText || theme.fg("dim", "(no output)"));
+			return text;
+		},
+
 		async execute(_toolCallId, params, signal, _onUpdate, _ctx) {
 			// Check if operation was cancelled
 			if (signal?.aborted) {
