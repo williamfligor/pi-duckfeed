@@ -544,8 +544,8 @@ async function formatRootView(
 	const { join } = await import("node:path");
 	let treeOutput: string;
 	try {
-		// Use --name-only to get just paths (simpler format)
-		treeOutput = execFileSync("git", ["ls-tree", "-r", "HEAD", "--name-only"], {
+		// List only top-level entries (no -r) to show root files and folders
+		treeOutput = execFileSync("git", ["ls-tree", "HEAD"], {
 			cwd: clone.localPath,
 			encoding: "utf-8",
 			timeout: GITHUB_GIT_OPERATION_TIMEOUT_MS,
@@ -557,13 +557,18 @@ async function formatRootView(
 	const treeEntries: Array<{ path: string; type: "blob" | "tree"; size?: number }> = [];
 	for (const line of treeOutput.trim().split("\n")) {
 		if (!line.trim()) continue;
-		// --name-only returns just paths, one per line
-		const path = line.trim();
-		// Determine type based on path structure
-		// If path contains /, it's a file in a subdirectory (blob)
-		// We'll treat root-level paths as blobs for simplicity
-		const type: "blob" | "tree" = "blob";
-		treeEntries.push({ path, type });
+		// Format: "mode type sha<TAB>path"
+		const tabParts = line.split("\t");
+		if (tabParts.length >= 2) {
+			const meta = tabParts[0]; // "mode type sha"
+			const path = tabParts[1]; // entry name
+			const metaParts = meta.split(" ");
+			const type = metaParts[1]; // "blob" or "tree"
+			treeEntries.push({
+				path,
+				type: type === "blob" ? "blob" : "tree",
+			});
+		}
 	}
 
 	// Try to find and read README

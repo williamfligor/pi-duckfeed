@@ -153,11 +153,8 @@ export async function getRepoTreeView(
 	validateOwnerRepo(owner, repo);
 	const refToUse = await getDefaultRef(owner, repo, ref, options);
 
-	// Get the tree
-	const treeData = await ghApi(
-		`repos/${owner}/${repo}/git/trees/${refToUse}?recursive=1`,
-		options,
-	);
+	// Get the top-level tree only (no recursive=1) to show just root files/folders
+	const treeData = await ghApi(`repos/${owner}/${repo}/git/trees/${refToUse}`, options);
 
 	const treeEntries: TreeEntry[] = (treeData.tree || []).map(
 		(item: { path: string; type: string; size?: number; mode?: number; sha?: string }) => ({

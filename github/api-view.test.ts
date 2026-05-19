@@ -113,7 +113,7 @@ describe("GitHub API View", () => {
 
 		it("returns markdown for valid repo", async () => {
 			const mockExecSync = createMockExecSync({
-				"gh:api:repos/microsoft/TypeScript/git/trees/main?recursive=1": JSON.stringify({
+				"gh:api:repos/microsoft/TypeScript/git/trees/main": JSON.stringify({
 					tree: [
 						{ path: "src", type: "tree", mode: "040000", sha: "abc123" },
 						{
@@ -141,7 +141,11 @@ describe("GitHub API View", () => {
 
 		it("uses default ref 'main' when not provided", async () => {
 			const mockExecSync = createMockExecSync({
-				"gh:api:repos/microsoft/TypeScript/git/trees/main?recursive=1": JSON.stringify({
+				// getDefaultRef calls this first to resolve the default branch
+				"gh:api:repos/microsoft/TypeScript": JSON.stringify({
+					default_branch: "main",
+				}),
+				"gh:api:repos/microsoft/TypeScript/git/trees/main": JSON.stringify({
 					tree: [{ path: "src", type: "tree", mode: "040000", sha: "abc123" }],
 				}),
 				"gh:api:repos/microsoft/TypeScript/readme?ref=main": JSON.stringify({
@@ -307,7 +311,7 @@ index abc123..def456 100644
 		it("handles API errors gracefully", async () => {
 			// Mock execSync to simulate API error
 			const mockExecSync = createMockExecSync({
-				"gh:api:repos/nonexistent-org-12345/nonexistent-repo-67890/git/trees/main?recursive=1":
+				"gh:api:repos/nonexistent-org-12345/nonexistent-repo-67890/git/trees/main":
 					new Error("Command not found"),
 			});
 
@@ -320,7 +324,7 @@ index abc123..def456 100644
 
 		it("preserves error cause when wrapping", async () => {
 			const mockExecSync = createMockExecSync({
-				"gh:api:repos/nonexistent-org-12345/nonexistent-repo-67890/git/trees/main?recursive=1":
+				"gh:api:repos/nonexistent-org-12345/nonexistent-repo-67890/git/trees/main":
 					new Error("Original error"),
 			});
 
@@ -344,19 +348,18 @@ index abc123..def456 100644
 
 			// Build mock responses object with dynamic keys
 			const mockResponses: Record<string, any> = {};
-			mockResponses[`gh:api:repos/${owner}/${repo}/git/trees/main?recursive=1`] =
-				JSON.stringify({
-					tree: [
-						{ path: "src", type: "tree", mode: "040000", sha: "abc123" },
-						{
-							path: "README.md",
-							type: "blob",
-							size: 100,
-							mode: "100644",
-							sha: "def456",
-						},
-					],
-				});
+			mockResponses[`gh:api:repos/${owner}/${repo}/git/trees/main`] = JSON.stringify({
+				tree: [
+					{ path: "src", type: "tree", mode: "040000", sha: "abc123" },
+					{
+						path: "README.md",
+						type: "blob",
+						size: 100,
+						mode: "100644",
+						sha: "def456",
+					},
+				],
+			});
 			mockResponses[`gh:api:repos/${owner}/${repo}/readme?ref=main`] = JSON.stringify({
 				name: "README.md",
 				content: "IyBUeXBlU2NyaXB0",
